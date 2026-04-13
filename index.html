@@ -1,0 +1,1971 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Master Reference</title>
+    <style>
+        :root{--bg:#0f172a;--card:#1e293b;--accent:#38bdf8;--text:#f1f5f9;--muted:#bce;--cmd:#fbbf24;--code:#000}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:20px;line-height:1.6}
+        .container{max-width:1200px;margin:auto}
+        header{text-align:center;padding:15px;background:#1e293b;border-radius:10px;margin-bottom:5px}
+        h1{color:var(--accent);margin:0}
+        input{width:80%;padding:10px;margin-top:15px;border-radius:20px;border:1px solid var(--accent);background:var(--bg);color:#fff;outline:none}
+        h2{color:var(--accent);border-bottom:1px solid #334155;margin-top:30px;padding-bottom:5px}
+		blockquote{font-size: 0.8em}
+		a{font-weight:normal;font-family:monospace;font-size:1.1em;text-decoration:none;letter-spacing: -0.03em;color:#aff}
+		a:not(:nth-last-of-type(1))::after{text-decoration:none;content:' • '}
+		a:hover{color:var(--accent)}
+		code{background: #222; padding: 0 5px;font-size: 1.3em}
+        .cmd-box{background:var(--card);margin-bottom:5px;border-radius:5px;border:1px solid #334155}
+        .summary{padding:7px 15px;cursor:pointer;display:flex;align-items:center}
+        .summary:hover{background:#2d3e54}
+        .name{color:var(--cmd);font-weight:normal;font-family:monospace;width:120px;font-size:1.2em}
+        .desc{flex-grow:1;color:var(--muted)}
+        .details{display:none;padding:7px 15px;background:#0a0f1d;border-top:1px solid #334155}
+		.flagdtl{color: #aaa;display:inline}
+		.flagdtl::before{content:'→ ';color:#839}
+        .flags{color:#ffdcae;font-size:0.9em;margin-bottom:0px}
+		.manref{font-weight:bold;font-family:monospace;}
+		pre{background:var(--code);color:#e2e8f0;padding:15px;border-radius:5px;overflow-x:auto;white-space:pre-line;font-size:1.1em;display:inline}
+        .comment{color:#1b6;margin-left:20px;display:inline-block}
+		.pre-container {display:flex;gap: 15px;margin-top: 10px;}
+		.pre-container pre {flex: 0 1 30%;margin: 0;border: 1px solid #666;border-style: inset;padding: 10px;}
+		.pre-container pre:nth-of-type(2){flex: 1 1 70%}
+		.tag{font-size: 0.7rem;background: var(--accent);color: var(--bg);padding: 2px 8px;border-radius: 10px;text-transform: uppercase;font-weight: bold;}
+		#links{text-align: center}
+		@media (max-width: 768px) {.pre-container {flex-direction: column;}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>🐧 Manuel des Commandes Linux</h1>
+        <input type="text" id="search" placeholder="Rechercher une commande..." onkeyup="search()">
+    </header>
+<div style="text-align: center"><a href="#user">User Management</a> <a href="#file1">File & Dir Bases</a> <a href="#file2">File & Dir: Traitement</a> <a href="#monitoring">Monitoring & Sys Info</a> <a href="#sysadmin">Sys Admin</a> <a href="#netadmin">Network Admin</a> <a href="#links">Liens Utiles</a></div>
+ <section class="cat" id="user">
+        <h2>User Management</h2>
+        
+        <div class="cmd-box"><div class="summary" onclick="toggle('useradd')"><span class="name">useradd</span><span class="desc">Créer un nouveau compte utilisateur de bas niveau.</span><span class="tag">System</span></div>
+        <div id="useradd" class="details">
+            <div class="flags">Commande standard pour instancier un nouvel utilisateur. Contrairement à 'adduser' (= script interactif), 'useradd' ne fait que ce qu'on lui demande via les options.</div>
+            <div class="pre-container">
+			<pre>
+-m <span class="flagdtl">Crée automatiquement le répertoire personnel</span>
+-d <span class="flagdtl">Définit un home personnalisé</span>
+-s <span class="flagdtl">Choisit le shell de connexion</span>
+-u <span class="flagdtl">Attribue un UID précis au lieu du prochain UID libre</span>
+-g <span class="flagdtl">Groupe primaire</span>
+-G <span class="flagdtl">Groupe(s) secondaire(s)</span>
+-c <span class="flagdtl">Commentaire</span>
+-r <span class="flagdtl">Compte Système</span>
+			</pre>
+			<pre>
+<span style="color: #aaa">1.</span> $ useradd -m alice
+<span class="comment"># L'option '-m' (make-home) est cruciale. Sans elle, le dossier /home/alice ne sera pas créé.</span>
+<span style="color: #aaa">2.</span> $ useradd -m -s /bin/bash bob
+<span class="comment"># '-s' définit le shell par défaut. Si omis, le système peut assigner /bin/sh (très limité).</span>
+<span style="color: #aaa">3.</span> $ useradd -m -G sudo,docker,www-data charlie
+<span class="comment"># '-G' ajoute l'utilisateur à une liste de groupes secondaires séparés par des virgules (sans espaces).</span>
+<span style="color: #aaa">4.</span> $ useradd -r -s /bin/false service_user
+<span class="comment"># '-r' crée un compte système (UID inférieur à 1000). '-s /bin/false' empêche ce compte de se connecter physiquement (idéal pour faire tourner un service web ou une base de données en sécurité).</span>
+<span style="color: #aaa">5.</span> $ useradd -m -d /mnt/data/diane diane
+<span class="comment"># '-d' permet de définir un chemin personnalisé pour le répertoire personnel de l'utilisateur.</span></pre>
+			</div>
+			<span class="manref">Références : <a href="https://doc.ubuntu-fr.org/useradd" target="_blank">[useradd @ doc.ubuntu-fr]</a><a href="http://pwet.fr/man/linux/administration_systeme/useradd/" target="_blank">[useradd man @ pwet.fr]</a><a href="https://linux.die.net/man/8/useradd" target="_blank">[useradd man @ linux.die]</a><a href="https://www.malekal.com/la-commande-useradd-utilisations-et-exemples/" target="_blank">[useradd @ Malekal]</a><a href="https://www.malekal.com/gerer-les-utilisateurs-groupes-sur-linux-en-ligne-de-commandes-adduser-addgroup-usermod-passwd/" target="_blank">[gestion utilisateurs/groupes @ Malekal]</a><a href="https://man7.org/linux/man-pages/man8/useradd.8.html" target="_blank">[useradd @ man7]</a>
+			</span>
+        </div>
+		</div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('userdel')"><span class="name">userdel</span><span class="desc">Supprimer définitivement un compte utilisateur.</span></div>
+        <div id="userdel" class="details">
+            <div class="flags">Supprime les entrées de l'utilisateur dans /etc/passwd et /etc/shadow. Attention aux fichiers "orphelins" qui appartiendront à un UID fantôme si le dossier personnel n'est pas supprimé.</div>
+			<div class="pre-container">
+			<pre>
+-f, --force <span class="flagdtl">Force la suppression même si le compte est encore utilisé</span>
+-r, --remove <span class="flagdtl">Supprime aussi le home et le spool mail</span>
+-Z, --selinux-user <span class="flagdtl">Supprime l'entrée SELinux associée si présente</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ userdel alice
+<span class="comment"># Supprime le compte système, mais le dossier /home/alice et son contenu restent intacts sur le disque.</span>
+<span style="color: #aaa">2.</span> $ userdel -r bob
+<span class="comment"># '-r' (remove) est l'option la plus courante : elle supprime le compte, le dossier /home/bob, et le spool de mails de bob. Action irréversible.</span>
+<span style="color: #aaa">3.</span> $ userdel -f charlie
+<span class="comment"># '-f' (force) force la suppression du compte même si charlie est actuellement connecté ou a des processus en cours d'exécution.</span></pre>
+			</div>
+			<span class="manref">Références : <a href="https://linux.die.net/man/8/userdel" target="_blank">[userdel @ linux.die]</a><a href="https://manpages.ubuntu.com/manpages/bionic/fr/man8/userdel.8.html" target="_blank">[userdel @ Ubuntu]</a><a href="https://oleks.ca/2025/04/09/les-commandes-userdel-et-deluser/" target="_blank">[userdel & deluser @ Oleks]</a><a href="https://www.malekal.com/gerer-les-utilisateurs-groupes-sur-linux-en-ligne-de-commandes-adduser-addgroup-usermod-passwd/" target="_blank">[suppression utilisateur @ Malekal]</a><a href="https://man7.org/linux/man-pages/man8/userdel.8.html" target="_blank">[userdel @ man7]</a>
+			</span>
+        </div></div>
+        <div class="cmd-box"><div class="summary" onclick="toggle('usermod')"><span class="name">usermod</span><span class="desc">Modifier les paramètres d'un compte existant.</span></div>
+        <div id="usermod" class="details">
+            <div class="flags">Permet d'altérer tout ce qui a été défini (ou oublié) lors du `useradd`. C'est l'outil de maintenance de compte par excellence.</div>
+			            <div class="pre-container">
+			<pre>
+-l <span class="flagdtl">login (change le nom de l'utilisateur)</span>
+-d <span class="flagdtl">home (définit un nouveau répertoire personnel)</span>
+-m <span class="flagdtl">move (déplace le contenu de l'ancien home vers le nouveau)</span>
+-g <span class="flagdtl">gid (change le groupe primaire)</span>
+-aG <span class="flagdtl">append groups (ajoute des groupes secondaires sans supprimer les actuels)</span>
+-s <span class="flagdtl">shell (change le shell par défaut)</span>
+-u <span class="flagdtl">uid (change l'identifiant numérique unique)</span>
+-L / -U <span class="flagdtl">lock / unlock (verrouille ou déverrouille le compte)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ sudo usermod -l alicia alice
+<span class="comment"># Renomme l'utilisateur 'alice' en 'alicia'.</span>
+<span style="color: #aaa">2.</span> $ sudo usermod -s /bin/bash developpeur
+<span class="comment"># Définit bash comme shell de connexion par défaut pour l'utilisateur 'developpeur'.</span>
+<span style="color: #aaa">3.</span> $ usermod -aG docker alice
+<span class="comment"># ATTENTION : '-a' (append) DOIT être utilisé avec '-G'. Cela "ajoute" alice au groupe docker. Si vous oubliez le '-a', alice sera retirée de TOUS ses autres groupes pour n'être que dans docker !</span>
+<span style="color: #aaa">4.</span> $ usermod -d /home/alicia -m alicia
+<span class="comment"># '-d' redéfinit le chemin du home. '-m' (move) déplace physiquement les anciens fichiers vers ce nouveau dossier.</span>
+<span style="color: #aaa">5.</span> $ usermod -L bob
+<span class="comment"># '-L' (Lock) verrouille le compte en insérant un '!' devant le mot de passe chiffré dans /etc/shadow. Connexion impossible.</span>
+<span style="color: #aaa">6.</span> $ usermod -U bob
+<span class="comment"># '-U' (Unlock) déverrouille un compte précédemment bloqué.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://manpages.ubuntu.com/manpages/focal/fr/man8/usermod.8.html" target="_blank">[usermod @ Ubuntu]</a><a href="https://linux.die.net/man/8/usermod" target="_blank">[usermod @ linux.die]</a><a href="https://oleks.ca/2025/02/17/usermod/" target="_blank">[usermod @ Oleks]</a><a href="https://www.malekal.com/la-commande-usermod-exemples-et-utilisations/" target="_blank">[usermod @ Malekal]</a><a href="https://www.malekal.com/gerer-les-utilisateurs-groupes-sur-linux-en-ligne-de-commandes-adduser-addgroup-usermod-passwd/" target="_blank">[gestion utilisateurs/groupes @ Malekal]</a><a href="https://man7.org/linux/man-pages/man8/usermod.8.html" target="_blank">[usermod @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('passwd')"><span class="name">passwd</span><span class="desc">Gérer les mots de passe et leur expiration.</span></div>
+        <div id="passwd" class="details">
+            <div class="flags">Gère l'authentification. Un utilisateur normal ne peut changer que son propre mot de passe. Root peut changer n'importe lequel sans connaître l'ancien.</div>
+			            <div class="pre-container">
+			<pre>
+-l <span class="flagdtl">lock (verrouille le compte)</span>
+-u <span class="flagdtl">unlock (déverrouille le compte)</span>
+-d <span class="flagdtl">delete (supprime le mot de passe)</span>
+-e <span class="flagdtl">expire (force le changement immédiat)</span>
+-S <span class="flagdtl">status (affiche l'état du compte)</span>
+-n <span class="flagdtl">min days (délai min. entre changements)</span>
+-x <span class="flagdtl">max days (durée de validité max.)</span>
+-w <span class="flagdtl">warn days (alerte avant expiration)</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ passwd
+<span class="comment"># Change le mot de passe de l'utilisateur actuellement connecté. Le système demandera l'ancien mot de passe en premier.</span>
+<span style="color: #aaa">2.</span> $ sudo passwd alice
+<span class="comment"># Force le changement du mot de passe d'alice. L'ancien mot de passe n'est pas demandé.</span>
+<span style="color: #aaa">3.</span> $ sudo passwd -e bob
+<span class="comment"># '-e' (expire) fait expirer immédiatement le mot de passe actuel. À sa prochaine tentative de connexion, bob sera forcé d'en choisir un nouveau.</span>
+<span style="color: #aaa">4.</span> $ sudo passwd -S charlie
+<span class="comment"># '-S' (Status) affiche l'état du mot de passe de charlie (P = actif, L = verrouillé, NP = pas de mot de passe).</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.malekal.com/gerer-les-utilisateurs-groupes-sur-linux-en-ligne-de-commandes-adduser-addgroup-usermod-passwd/" target="_blank">[passwd @ Malekal]</a><a href="https://man7.org/linux/man-pages/man1/passwd.1.html" target="_blank">[passwd @ man7]</a><a href="https://manpages.ubuntu.com/manpages/jammy/fr/man1/passwd.1.html" target="_blank">[passwd @ Ubuntu]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('groupadd')"><span class="name">groupadd</span><span class="desc">Instancier un nouveau groupe d'utilisateurs.</span></div>
+        <div id="groupadd" class="details">
+            <div class="flags">Crée une nouvelle entité logique dans /etc/group à laquelle on pourra assigner des utilisateurs pour faciliter la gestion des droits sur des dossiers.</div>
+			            <div class="pre-container">
+			<pre>
+-g <span class="flagdtl">GID (identifiant numérique unique)</span>
+-o <span class="flagdtl">non-unique (autorise un GID en doublon)</span>
+-p <span class="flagdtl">password (mot de passe chiffré)</span>
+-r <span class="flagdtl">system (crée un groupe système)</span>
+-f <span class="flagdtl">force (quitte avec succès si le groupe existe déjà)</span>
+-K <span class="flagdtl">key=value (surcharge les limites par défaut)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ sudo groupadd developpeurs
+<span class="comment"># Crée un nouveau groupe nommé 'developpeurs' avec le prochain GID disponible.</span>
+<span style="color: #aaa">2.</span> $ sudo groupadd -g 1500 tech
+<span class="comment"># Crée le groupe 'tech' en lui assignant spécifiquement l'identifiant 1500.</span>
+<span style="color: #aaa">3.</span> $ sudo groupadd -r www-data
+<span class="comment"># Crée un groupe système (généralement avec un GID inférieur à 1000).</span>
+<span style="color: #aaa">4.</span> $ sudo groupadd -f marketing
+<span class="comment"># Crée le groupe marketing, mais ne renvoie pas d'erreur s'il existe déjà.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.malekal.com/gerer-les-utilisateurs-groupes-sur-linux-en-ligne-de-commandes-adduser-addgroup-usermod-passwd/" target="_blank">[groupadd @ Malekal]</a><a href="https://www.malekal.com/fichier-etc-group-linux/" target="_blank">[/etc/group @ Malekal]</a><a href="https://man7.org/linux/man-pages/man8/groupadd.8.html" target="_blank">[groupadd @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('groupdel')"><span class="name">groupdel</span><span class="desc">Supprimer un groupe existant.</span></div>
+        <div id="groupdel" class="details">
+            <div class="flags">Supprime l'entrée du groupe. Notez que cela ne supprime ni les utilisateurs qui en faisaient partie, ni les fichiers appartenant à ce groupe.</div>
+			            <div class="pre-container">
+			<pre>
+-h <span class="flagdtl">help (affiche l'aide)</span>
+-R <span class="flagdtl">root (applique les changements dans le répertoire chroot)</span>
+-f <span class="flagdtl">force (supprime même s'il est le groupe primaire d'un utilisateur)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ sudo groupdel dev-team
+<span class="comment"># Supprime définitivement le groupe 'dev-team' du système.</span>
+<span style="color: #aaa">2.</span> $ sudo groupdel -f mon-groupe
+<span class="comment"># Force la suppression du groupe, même si des fichiers ou des processus l'utilisent encore (à utiliser avec prudence).</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.malekal.com/gerer-les-utilisateurs-groupes-sur-linux-en-ligne-de-commandes-adduser-addgroup-usermod-passwd/" target="_blank">[groupdel @ Malekal]</a><a href="https://www.malekal.com/fichier-etc-group-linux/" target="_blank">[/etc/group @ Malekal]</a><a href="https://man7.org/linux/man-pages/man8/groupdel.8.html" target="_blank">[groupdel @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('groupmod')"><span class="name">groupmod</span><span class="desc">Modifier les paramètres d'un groupe.</span></div>
+        <div id="groupmod" class="details">
+            <div class="flags">Permet de changer le nom ou l'ID d'un groupe existant sans avoir à le recréer et réassigner ses membres.</div>
+            <div class="pre-container">
+			<pre>
+-g <span class="flagdtl">new GID (modifie l'ID numérique)</span>
+-n <span class="flagdtl">new name (renomme le groupe)</span>
+-o <span class="flagdtl">non-unique (autorise un GID doublon)</span>
+-p <span class="flagdtl">password (change le mot de passe)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ sudo groupmod -n dev-team developpeurs
+<span class="comment"># Renomme le groupe 'developpeurs' en 'dev-team'. Les membres restent les mêmes.</span>
+<span style="color: #aaa">2.</span> $ sudo groupmod -g 2000 dev-team
+<span class="comment"># Change le GID du groupe à 2000. Attention : les fichiers appartenant à l'ancien GID devront être mis à jour manuellement.</span>
+<span style="color: #aaa">3.</span> $ sudo groupmod -p '$6$rounds=5000...' staff
+<span class="comment"># Modifie le mot de passe chiffré du groupe staff.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.malekal.com/gerer-les-utilisateurs-groupes-sur-linux-en-ligne-de-commandes-adduser-addgroup-usermod-passwd/" target="_blank">[groupmod @ Malekal]</a><a href="https://www.malekal.com/fichier-etc-group-linux/" target="_blank">[/etc/group @ Malekal]</a><a href="https://man7.org/linux/man-pages/man8/groupmod.8.html" target="_blank">[groupmod @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('id')"><span class="name">id</span><span class="desc">Afficher l'identité et les groupes actifs.</span></div>
+        <div id="id" class="details">
+            <div class="flags">Commande essentielle pour vérifier ses propres privilèges ou ceux d'un autre utilisateur après une modification avec usermod.</div>
+			            <div class="pre-container">
+			<pre>
+-u <span class="flagdtl">user (affiche uniquement l'UID numérique)</span>
+-g <span class="flagdtl">group (affiche uniquement le GID primaire)</span>
+-G <span class="flagdtl">groups (affiche tous les GID du compte)</span>
+-n <span class="flagdtl">name (affiche le nom au lieu du numéro - s'utilise avec -u, -g ou -G)</span>
+-a <span class="flagdtl">all (ignore pour la compatibilité avec d'autres versions)</span>
+-z <span class="flagdtl">zero (délimite les sorties par un caractère nul au lieu d'espaces)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ id
+<span class="comment"># Affiche l'UID, le GID primaire et tous les groupes secondaires de l'utilisateur actuel.</span>
+<span style="color: #aaa">2.</span> $ id -un alice
+<span class="comment"># Affiche uniquement le nom d'utilisateur (utile dans les scripts).</span>
+<span style="color: #aaa">3.</span> $ id -G bob
+<span class="comment"># Liste tous les identifiants de groupes auxquels appartient bob.</span>
+<span style="color: #aaa">4.</span> $ id -nG
+<span class="comment"># Affiche les noms de tous les groupes de l'utilisateur actuel séparés par des espaces.</span>
+<span style="color: #aaa">5.</span> $ id -u
+<span class="comment"># N'affiche que le numéro d'UID. Souvent utilisé dans des scripts (ex: if [ $(id -u) -eq 0 ]; then echo "Je suis root"; fi).</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.malekal.com/gerer-les-utilisateurs-groupes-sur-linux-en-ligne-de-commandes-adduser-addgroup-usermod-passwd/" target="_blank">[id @ Malekal]</a><a href="https://www.linuxtricks.fr/wiki/quelques-commandes-utiles-a-connaitre-sous-linux" target="_blank">[id @ LinuxTricks]</a><a href="https://man7.org/linux/man-pages/man1/id.1.html" target="_blank">[id @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('su')"><span class="name">su</span><span class="desc">Substitute User (Changer d'utilisateur en cours de session).</span></div>
+        <div id="su" class="details">
+            <div class="flags">Ouvre un nouveau shell en tant qu'un autre utilisateur. Par défaut, cible l'utilisateur root.</div>
+			            <div class="pre-container">
+			<pre>
+- <span class="flagdtl">login (lance un shell de connexion avec l'environnement de l'utilisateur)</span>
+-l <span class="flagdtl">login (équivalent au tiret seul '-')</span>
+-c <span class="flagdtl">command (exécute une commande spécifique puis quitte)</span>
+-s <span class="flagdtl">shell (utilise un shell spécifique au lieu de celui par défaut)</span>
+-p <span class="flagdtl">preserve-environment (conserve les variables d'environnement actuelles)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ su -
+<span class="comment"># Devient root et charge tout son environnement (PATH, variables, répertoire /root).</span>
+<span style="color: #aaa">2.</span> $ su alice
+<span class="comment"># Bascule vers le compte d'alice, mais garde l'environnement de l'utilisateur précédent.</span>
+<span style="color: #aaa">3.</span> $ su -l bob -s /bin/zsh
+<span class="comment"># Se connecte en tant que bob en utilisant spécifiquement le shell zsh.</span>
+<span style="color: #aaa">4.</span> $ su -c "systemctl restart nginx" root
+<span class="comment"># '-c' (command) permet d'exécuter UNE seule commande en tant que root, puis la session su se ferme automatiquement.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.malekal.com/comment-utiliser-la-commande-su-avec-des-exemples-sur-linux/" target="_blank">[su @ Malekal]</a><a href="https://www.linuxtricks.fr/wiki/differences-sudo-su-et-su" target="_blank">[su vs sudo @ LinuxTricks]</a><a href="https://man7.org/linux/man-pages/man1/su.1.html" target="_blank">[su @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('sudo')"><span class="name">sudo</span><span class="desc">Superuser DO (Exécuter avec élévation de privilèges).</span></div>
+        <div id="sudo" class="details">
+            <div class="flags">Permet à un utilisateur autorisé d'exécuter une commande en tant que root sans connaître le mot de passe root (il utilise son propre mot de passe). Tout est logué dans le système.</div>
+			            <div class="pre-container">
+			<pre>
+-i <span class="flagdtl">login (simule une connexion initiale, charge l'environnement root)</span>
+-s <span class="flagdtl">shell (lance le shell spécifié par la variable SHELL)</span>
+-u <span class="flagdtl">user (exécute la commande en tant qu'un utilisateur spécifique)</span>
+-l <span class="flagdtl">list (liste les privilèges autorisés pour l'utilisateur)</span>
+-k <span class="flagdtl">kill (invalide les identifiants en cache, demande le mot de passe au prochain sudo)</span>
+-v <span class="flagdtl">validate (met à jour le cache du mot de passe pour 15 min par défaut)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ sudo apt update
+<span class="comment"># Exécute la mise à jour des dépôts avec les privilèges root.</span>
+<span style="color: #aaa">2.</span> $ sudo -i
+<span class="comment"># Ouvre une session interactive en tant que root avec son environnement complet.</span>
+<span style="color: #aaa">3.</span> $ sudo -u alice ls /home/alice/docs
+<span class="comment"># Liste les fichiers d'un répertoire appartenant à alice en utilisant son identité.</span>
+<span style="color: #aaa">4.</span> $ sudo -l
+<span class="comment"># (list) Affiche quelles commandes vous avez le droit d'exécuter avec sudo (défini dans le fichier /etc/sudoers).</span>
+<span style="color: #aaa">5.</span> $ sudo !!
+<span class="comment"># Raccourci magique de bash : rappelle la dernière commande tapée et y préfixe 'sudo'. Très utile quand on a oublié de le mettre et qu'on reçoit une erreur "Permission denied".</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.malekal.com/sudo-comment-utiliser-et-le-configurer-sur-linux/" target="_blank">[sudo @ Malekal]</a><a href="https://www.linuxtricks.fr/wiki/sudo-utiliser-et-parametrer-sudoers" target="_blank">[sudo/sudoers @ LinuxTricks]</a><a href="https://man7.org/linux/man-pages/man8/sudo.8.html" target="_blank">[sudo @ man7]</a>
+			</span>
+        </div></div>
+    </section>
+
+<section class="cat" id="file1">
+        <h2>File & Directory Management - Navigation & Base</h2>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('ls')"><span class="name">ls</span><span class="desc">Lister le contenu d'un répertoire.</span></div>
+        <div id="ls" class="details">
+            <div class="flags">'ls' (List) interroge le système de fichiers pour afficher les objets présents dans un dossier. C'est la commande la plus utilisée pour se repérer.</div>
+			  <div class="pre-container">
+			<pre>
+-l <span class="flagdtl">long (format détaillé)</span>
+-a <span class="flagdtl">all (affiche tout, y compris les fichiers cachés débutant par '.')</span>
+-A <span class="flagdtl">almost all (-a sans '.' et '..')</span>
+-d, --directory<span class="flagdtl">list directory entries</span>
+-h <span class="flagdtl">human-readable (affiche les tailles en Ko, Mo, Go avec -l)</span>
+-t <span class="flagdtl">time (trie par date de modification, du plus récent au plus ancien)</span>
+-r <span class="flagdtl">reverse (inverse l'ordre du tri)</span>
+-R <span class="flagdtl">recursive (liste aussi le contenu des sous-répertoires)</span>
+-S <span class="flagdtl">size (trie par taille de fichier)</span>
+-1 <span class="flagdtl">one (affiche un seul fichier par ligne)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ ls -la
+<span class="comment"># Liste tous les fichiers (cachés inclus) avec les détails complets.</span>
+<span style="color: #aaa">2.</span> $ ls -lh /var/log
+<span class="comment"># Affiche les fichiers de logs avec des tailles lisibles (ex: 4.2M au lieu de 4404019).</span>
+<span style="color: #aaa">3.</span> $ ls -R Documents/
+<span class="comment"># Explore récursivement tout ce qui se trouve dans le dossier Documents.</span>
+<span style="color: #aaa">4.</span> $ ls -lt
+<span class="comment"># '-t' trie par date de modification décroissante. Très utile pour voir quels fichiers viennent d'être créés ou modifiés dans un dossier encombré.</span>
+<span style="color: #aaa">5.</span> $ ls -lS
+<span class="comment"># '-S' (majuscule) trie par taille de fichier. Idéal pour identifier rapidement les fichiers qui saturent ton espace disque.</span>
+<span style="color: #aaa">6.</span> $ ls -R
+<span class="comment"># '-R' (Récursif) descend dans tous les sous-dossiers. Attention : si tu le lances à la racine (/), l'affichage ne s'arrêtera plus !</span>
+<span style="color: #aaa">7.</span> $ ls -d */
+<span class="comment"># N'affiche que les dossiers du répertoire courant, en ignorant les fichiers simples.</span></pre>
+		</div>
+<span class="manref">Références : <a href="https://www.malekal.com/la-commande-ls-linux-utilisation-et-exemples/" target="_blank">[ls @ Malekal]</a><a href="https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html" target="_blank">[ls @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/ls.1.html" target="_blank">[ls @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('cd')"><span class="name">cd</span><span class="desc">Change Directory (Changer de répertoire).</span></div>
+        <div id="cd" class="details">
+            <div class="flags">Permet de déplacer le "point focal" de ton terminal dans l'arborescence.</div>
+			<div class="pre-container">
+			<pre>
+-P <span class="flagdtl">physical (suit les liens symboliques vers leur dossier réel)</span>
+-L <span class="flagdtl">logical (suit les liens symboliques, comportement par défaut)</span>
+.. <span class="flagdtl">parent (remonte d'un niveau dans l'arborescence)</span>
+~  <span class="flagdtl">home (raccourci vers le répertoire personnel de l'utilisateur)</span>
+-  <span class="flagdtl">previous (retourne au dernier répertoire visité)</span>
+/  <span class="flagdtl">root (va à la racine du système de fichiers)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ cd /var/www/html
+<span class="comment"># Déplacement via un chemin absolu (partant de la racine).</span>
+<span style="color: #aaa">2.</span> $ cd ../Documents
+<span class="comment"># Remonte d'un cran puis entre dans 'Documents' (chemin relatif).</span>
+<span style="color: #aaa">3.</span> $ cd ~
+<span class="comment"># Retour immédiat dans votre dossier personnel (/home/utilisateur).</span>
+<span style="color: #aaa">4.</span> $ cd -
+<span class="comment"># Bascule entre le répertoire actuel et le précédent (très pratique pour les allers-retours).</span></pre>
+		</div>
+<span class="manref">Références : <a href="https://www.gnu.org/software/bash/manual/html_node/Bourne-Shell-Builtins.html#index-cd" target="_blank">[cd @ Bash Manual]</a><a href="https://www.gnu.org/software/bash/manual/html_node/Directory-Stack-Builtins.html" target="_blank">[navigation shell @ Bash Manual]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('pwd')"><span class="name">pwd</span><span class="desc">Print Working Directory (Afficher le chemin actuel).</span></div>
+        <div id="pwd" class="details">
+            <div class="flags">Quand on est perdu dans des arborescences complexes, pwd donne le chemin complet depuis la racine.</div>
+            <div class="pre-container">
+			<pre>
+-L <span class="flagdtl">logical (affiche le chemin incluant les liens symboliques, par défaut)</span>
+-P <span class="flagdtl">physical (affiche le chemin réel, en résolvant les liens symboliques)</span>
+--help <span class="flagdtl">aide (affiche l'aide de la commande)</span>
+--version <span class="flagdtl">version (affiche les informations de version)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ pwd
+<span class="comment"># Affiche par exemple : /home/alice/Documents/Projets</span>
+<span style="color: #aaa">2.</span> $ pwd -P
+<span class="comment"># Si vous êtes dans un dossier qui est un lien symbolique, affiche le véritable emplacement sur le disque.</span>
+<span style="color: #aaa">3.</span> $ echo "Je suis ici : $(pwd)"
+<span class="comment"># Utilisation courante dans les scripts pour mémoriser l'emplacement actuel.</span></pre>
+		</div>
+<span class="manref">Références : <a href="https://www.gnu.org/software/coreutils/manual/html_node/pwd-invocation.html" target="_blank">[pwd @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/pwd.1.html" target="_blank">[pwd @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('mkdir')"><span class="name">mkdir</span><span class="desc">Make Directory (Créer un dossier).</span></div>
+        <div id="mkdir" class="details">
+            <div class="flags">Crée un ou plusieurs dossiers. Par défaut, il échoue si le dossier parent n'existe pas.</div>
+            <div class="pre-container">
+			<pre>
+-p <span class="flagdtl">parents (crée les dossiers parents si nécessaire, sans erreur s'ils existent)</span>
+-m <span class="flagdtl">mode (définit les permissions au moment de la création, ex: 755)</span>
+-v <span class="flagdtl">verbose (affiche un message pour chaque répertoire créé)</span>
+-Z <span class="flagdtl">context (définit le contexte de sécurité SELinux)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ mkdir nouveau_dossier
+<span class="comment"># Crée un dossier nommé 'nouveau_dossier' dans le répertoire actuel.</span>
+<span style="color: #aaa">2.</span> $ mkdir -p projets/python/scripts
+<span class="comment"># Crée toute l'arborescence d'un coup, même si 'projets' ou 'python' n'existent pas.</span>
+<span style="color: #aaa">3.</span> $ mkdir -m 777 public_folder
+<span class="comment"># Crée un dossier avec tous les droits en lecture/écriture/exécution pour tout le monde.</span>
+<span style="color: #aaa">4.</span> $ mkdir {janvier,fevrier,mars}_logs
+<span class="comment"># Astuce shell : crée trois dossiers d'un coup (janvier_logs, fevrier_logs, mars_logs).</span></pre>
+		</div>
+<span class="manref">Références : <a href="https://www.malekal.com/comment-utiliser-commande-mkdir-linux-exemples/" target="_blank">[mkdir @ Malekal]</a><a href="https://www.gnu.org/software/coreutils/manual/html_node/mkdir-invocation.html" target="_blank">[mkdir @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/mkdir.1.html" target="_blank">[mkdir @ man7]</a>
+			</span>
+        </div></div>
+
+<div class="cmd-box"><div class="summary" onclick="toggle('rm_ultra')"><span class="name">rm</span><span class="desc">Remove (Supprimer des fichiers ou répertoires)</span></div>
+        <div id="rm_ultra" class="details">
+            <div class="flags">
+                <strong>Attention :</strong> Commande destructive sans corbeille. 
+                Les flags <code>-r</code> (récursif) et <code>-f</code> (force) sont les plus puissants.
+            </div>
+            <div class="pre-container">
+			<pre>
+-r <span class="flagdtl">recursive (supprime un répertoire et tout son contenu)</span>
+-f <span class="flagdtl">force (ignore les fichiers inexistants, ne demande jamais de confirmation)</span>
+-i <span class="flagdtl">interactive (demande confirmation avant chaque suppression)</span>
+-v <span class="flagdtl">verbose (affiche le nom de chaque fichier avant de le supprimer)</span>
+-d <span class="flagdtl">dir (supprime des répertoires vides, comme rmdir)</span>
+-I <span class="flagdtl">prompt (demande une fois avant de supprimer plus de trois fichiers)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ rm notes.txt
+<span class="comment"># Supprime le fichier spécifié dans le dossier courant.</span>
+<span style="color: #aaa">2.</span> $ rm -rf dossier_inutile/
+<span class="comment"># Supprime récursivement un dossier et tout ce qu'il contient sans demander de confirmation.</span>
+<span style="color: #aaa">3.</span> $ rm -i *.jpg
+<span class="comment"># Demande confirmation pour chaque fichier jpg avant de le supprimer.</span>
+<span style="color: #aaa">4.</span> $ rm -v f1.txt f2.txt
+<span class="comment"># Supprime les deux fichiers et affiche une confirmation textuelle pour chacun.</span>
+<span style="color: #aaa">5.</span> $ rm file1.txt file2.txt
+<span class="comment"># Suppression simple de plusieurs fichiers ciblés.</span>
+<span style="color: #aaa">6.</span> $ rm -v log_*.txt
+<span class="comment"># Affiche "removed 'log_01.txt'", "removed 'log_02.txt'", etc. Utile pour confirmer ce qui a été effacé par un wildcard (*).</span>
+<span style="color: #aaa">7.</span> $ rm -rf folder/{sub1,sub2}/temp_*
+<span class="comment"># Utilisation des accolades (braces) pour cibler des fichiers spécifiques dans plusieurs sous-dossiers en une seule fois.</span>
+<span style="color: #aaa">8.</span> $ rm -- -file_starting_with_dash.txt
+<span class="comment"># Astuce : Le '--' indique à Linux que les arguments suivants ne sont pas des options, permettant de supprimer un fichier dont le nom commence par '-'.</span>
+<span style="color: #aaa">9.</span> $ find . -type f -name "*.tmp" -exec rm -f {} +
+<span class="comment"># Combine 'find' et 'rm' pour supprimer tous les fichiers .tmp dans l'arborescence actuelle de manière performante.</span></pre>
+		</div>
+		<div style="font-size:0.9em"><strong>Astuce :</strong> Pour éviter les accidents, beaucoup d'administrateurs ajoutent <code>alias rm='rm -i'</code> dans leur fichier <code>.bashrc</code>. Ainsi, le système demande toujours confirmation par défaut.</div>
+<span class="manref">Références : <a href="https://www.gnu.org/software/coreutils/manual/html_node/rm-invocation.html" target="_blank">[rm @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/rm.1.html" target="_blank">[rm @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('cp')"><span class="name">cp</span><span class="desc">Copy (Copier des données).</span></div>
+        <div id="cp" class="details">
+            <div class="flags">Duplique des fichiers ou des dossiers vers une nouvelle destination. `cp` est tr&egrave;s utilis&eacute; pour les sauvegardes rapides, les duplications de configuration et les copies prudentes quand on veut &eacute;viter d'&eacute;craser l'existant.</div>
+			            <div class="pre-container">
+			<pre>
+-r <span class="flagdtl">recursive (obligatoire pour copier des répertoires et leur contenu)</span>
+-i <span class="flagdtl">interactive (demande avant d'écraser un fichier existant)</span>
+-p <span class="flagdtl">preserve (conserve les permissions, l'id propriétaire et les dates)</span>
+-v <span class="flagdtl">verbose (affiche le détail des copies effectuées)</span>
+-u <span class="flagdtl">update (copie seulement si la source est plus récente que la cible)</span>
+-n <span class="flagdtl">no-clobber (n'écrase jamais un fichier existant)</span>
+-a <span class="flagdtl">archive (équivalent à -dpR, idéal pour les sauvegardes)</span>
+-t <span class="flagdtl">target-directory (pr&eacute;cise explicitement le dossier de destination)</span>
+--parents <span class="flagdtl">recr&eacute;e le chemin source dans la destination</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ cp rapport.pdf rapport_sauvegarde.pdf
+<span class="comment"># Crée une copie exacte du fichier sous un nouveau nom dans le même dossier.</span>
+<span style="color: #aaa">2.</span> $ cp -r Documents/ /media/cle_usb/
+<span class="comment"># Copie tout le dossier Documents et ses sous-dossiers vers la clé USB.</span>
+<span style="color: #aaa">3.</span> $ cp *.jpg ~/Images/Photos/
+<span class="comment"># Copie toutes les images JPG du dossier courant vers le dossier Photos.</span>
+<span style="color: #aaa">4.</span> $ cp -u projet.c backups/
+<span class="comment"># Ne copie le fichier que s'il a été modifié depuis la dernière sauvegarde.</span>
+<span style="color: #aaa">5.</span> $ cp -a /etc/skel/ nouveau_home/
+<span class="comment"># Conserve droits, dates et liens. Le bon r&eacute;flexe pour dupliquer une arborescence sans perdre ses m&eacute;tadonn&eacute;es.</span>
+<span style="color: #aaa">6.</span> $ cp -n *.conf sauvegarde/
+<span class="comment"># Copie plusieurs fichiers de configuration sans &eacute;craser ceux d&eacute;j&agrave; pr&eacute;sents.</span>
+<span style="color: #aaa">7.</span> $ cp --parents ./conf/nginx/site.conf /tmp/test/
+<span class="comment"># Recr&eacute;e le chemin source dans la destination, pratique pour pr&eacute;parer un dossier de test partiel.</span></pre>
+		</div>
+<span class="manref">Références : <a href="https://www.gnu.org/software/coreutils/manual/html_node/cp-invocation.html" target="_blank">[cp @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/cp.1.html" target="_blank">[cp @ man7]</a><a href="https://www.malekal.com/commande-cp-linux/" target="_blank">[cp @ Malekal]</a>
+			</span>
+        </div></div>
+
+<div class="cmd-box"><div class="summary" onclick="toggle('chmod_pro')"><span class="name">chmod</span><span class="desc">Change Mode (Gestion avancée des permissions)</span></div>
+        <div id="chmod_pro" class="details">
+            <div class="flags">
+                <code>chmod</code> définit les droits de lecture (r=4), écriture (w=2) et exécution (x=1) pour le propriétaire, le groupe et les autres. C'est la commande &agrave; conna&icirc;tre pour s&eacute;curiser un fichier sensible, rendre un script ex&eacute;cutable ou remettre des permissions coh&eacute;rentes sur un dossier.
+            </div>
+			            <div class="pre-container">
+			<pre>
+-R <span class="flagdtl">Applique récursivement aux sous-dossiers et fichiers</span>
+-v <span class="flagdtl">Affiche chaque changement effectué</span>
+-c <span class="flagdtl">Affiche seulement les changements réellement appliqués</span>
+-f <span class="flagdtl">Supprime les messages d'erreur non critiques</span>
+--reference <span class="flagdtl">Copie les permissions d'un fichier modèle</span>
+
+u  <span class="flagdtl">utilisateur propriétaire</span>
+g  <span class="flagdtl">groupe propriétaire</span>
+o  <span class="flagdtl">autres utilisateurs</span>
+a  <span class="flagdtl">tout le monde</span>
+
+r  <span class="flagdtl">lecture</span>
+w <span class="flagdtl">écriture</span>
+x <span class="flagdtl">exécution</span>
+X <span class="flagdtl">exécution seulement si dossier ou fichier déjà exécutable</span>
+s <span class="flagdtl">bit setuid/setgid</span>
+t <span class="flagdtl">sticky bit, utile sur des dossiers partagés comme /tmp</span>
+		<table style="width:auto; border-collapse: collapse; margin-top: 40px; font-size: 0.8em">
+                <tr style="background-color: #226;">
+                    <th style="padding: 0 15px; border: 1px solid #55c;">Valeur</th>
+                    <th style="padding: 0 15px; border: 1px solid #55c;">Droit</th>
+                    <th style="padding: 0 15px; border: 1px solid #55c;">Symbole</th>
+                </tr>
+                <tr><td style="padding: 0 15px; border: 1px solid #55c; text-align:center;">7</td><td style="padding: 0 15px; border: 1px solid #55c; text-align:center;">rwx</td><td style="padding: 0 15px; border: 1px solid #55c;">Lecture + Écriture + Exécution</td></tr>
+                <tr><td style="padding: 0 15px; border: 1px solid #55c; text-align:center;">6</td><td style="padding: 0 15px; border: 1px solid #55c; text-align:center;">rw-</td><td style="padding: 0 15px; border: 1px solid #55c;">Lecture + Écriture</td></tr>
+                <tr><td style="padding: 0 15px; border: 1px solid #55c; text-align:center;">5</td><td style="padding: 0 15px; border: 1px solid #55c; text-align:center;">r-x</td><td style="padding: 0 15px; border: 1px solid #55c;">Lecture + Exécution</td></tr>
+                <tr><td style="padding: 0 15px; border: 1px solid #55c; text-align:center;">4</td><td style="padding: 0 15px; border: 1px solid #55c; text-align:center;">r--</td><td style="padding: 0 15px; border: 1px solid #55c;">Lecture seule</td></tr>
+            </table>            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ chmod +x script.sh
+<span class="comment"># Rend le fichier exécutable pour tout le monde (Propriétaire, Groupe, Autres).</span>
+<span style="color: #aaa">2.</span> $ chmod 755 dossier/
+<span class="comment"># rwxr-xr-x : Propriétaire a tous les droits, les autres peuvent seulement lire et entrer.</span>
+<span style="color: #aaa">3.</span> $ chmod -R 644 /var/www/html
+<span class="comment"># rw-r--r-- : Définit récursivement les droits de lecture standard pour des fichiers web.</span>
+<span style="color: #aaa">4.</span> $ chmod u=rwx,g=rx,o= mon_fichier
+<span class="comment"># Définit précisément : tout pour l'utilisateur, lecture/exécution pour le groupe, rien pour les autres.</span>
+<span style="color: #aaa">5.</span> $ chmod 644 index.html
+<span class="comment"># Standard pour les fichiers web : Propriétaire (6: rw-), Groupe (4: r--), Autres (4: r--).</span>
+<span style="color: #aaa">6.</span> $ chmod 755 scripts/
+<span class="comment"># Standard pour les répertoires : Tout le monde peut lister et entrer, seul le propriétaire modifie.</span>
+<span style="color: #aaa">7.</span> $ chmod 600 ~/.ssh/id_rsa
+<span class="comment"># Sécurisation de clé privée : Seul le propriétaire peut lire et écrire. Le système refuse souvent d'utiliser une clé trop exposée.</span>
+<span style="color: #aaa">8.</span> $ chmod u+x deploy.sh
+<span class="comment"># Ajoute (+) le droit d'exécution (x) uniquement à l'utilisateur propriétaire (u).</span>
+<span style="color: #aaa">9.</span> $ chmod g-w document.txt
+<span class="comment"># Retire (-) le droit d'écriture (w) au groupe (g).</span>
+<span style="color: #aaa">10.</span> $ chmod a+r readme.md
+<span class="comment"># Donne le droit de lecture (r) à tout le monde (a : all). Equivalent à ugo+r.</span>
+<span style="color: #aaa">11.</span> $ chmod -R u=rwX,go=r static/
+<span class="comment"># Usage avancé : Fixe (=) les droits récursivement. Le 'X' majuscule n'ajoute l'exécution qu'aux dossiers (pour pouvoir les parcourir) et non aux fichiers simples.</span></pre>
+		</div>
+
+			<span class="manref">Références : <a href="https://linux.die.net/man/1/chmod" target="_blank">[chmod @ linux.die]</a><a href="https://www.it-connect.fr/maitrisez-la-commande-chmod-sous-linux/" target="_blank">[chmod @ IT-Connect]</a><a href="https://www.gnu.org/software/coreutils/manual/html_node/chmod-invocation.html" target="_blank">[chmod @ GNU]</a><a href="https://www.malekal.com/chmod-linux/" target="_blank">[chmod @ Malekal]</a>
+			</span>
+        </div></div>
+
+<div class="cmd-box"><div class="summary" onclick="toggle('chown_pro')"><span class="name">chown</span><span class="desc">Change Owner (Gérer l'appartenance des fichiers)</span></div>
+        <div id="chown_pro" class="details">
+            <div class="flags">
+                <code>chown</code> permet de modifier l'utilisateur propriétaire et/ou le groupe propriétaire. Cette commande nécessite généralement les privilèges <code>sudo</code> et revient souvent lorsqu'on d&eacute;ploie un site, corrige un partage ou restaure une sauvegarde.
+            </div>
+			            <div class="pre-container">
+			<pre>
+-R <span class="flagdtl">recursive (applique le changement à tout le contenu d'un dossier)</span>
+-v <span class="flagdtl">verbose (affiche un message pour chaque fichier traité)</span>
+-c <span class="flagdtl">changes (signale uniquement les fichiers dont le propriétaire change)</span>
+-h <span class="flagdtl">no-dereference (modifie le lien symbolique lui-même, pas sa cible)</span>
+--reference <span class="flagdtl">file (copie le propriétaire d'un fichier existant)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ sudo chown alice rapport.txt
+<span class="comment"># Change le propriétaire du fichier pour 'alice'. Le groupe reste inchangé.</span>
+<span style="color: #aaa">2.</span> $ sudo chown alice:developpeurs projet/
+<span class="comment"># Change à la fois le propriétaire (alice) et le groupe (developpeurs) du dossier.</span>
+<span style="color: #aaa">3.</span> $ sudo chown -R www-data:www-data /var/www/html
+<span class="comment"># Donne récursivement la propriété de tout le site web à l'utilisateur et au groupe 'www-data'.</span>
+<span style="color: #aaa">4.</span> $ sudo chown :admin script.sh
+<span class="comment"># Change uniquement le groupe pour 'admin' (notez le ':' avant le nom).</span>
+<span style="color: #aaa">5.</span> $ sudo chown --reference=file1.txt file2.txt
+<span class="comment"># Copie exactement les mêmes propriétaires de file1 vers file2. Évite les erreurs de saisie manuelle.</span>
+<span style="color: #aaa">6.</span> $ sudo chown -h alice lien_symbolique
+<span class="comment"># '-h' : Modifie le propriétaire du lien symbolique lui-même, et non du fichier vers lequel il pointe (comportement par défaut).</span></pre>
+
+		</div>
+		<blockquote style="font-size: 0.8em;">
+                <strong>NB :</strong> Seul l'utilisateur root (ou via <code>sudo</code>) peut céder la propriété d'un fichier à un autre utilisateur pour des raisons de sécurité et de quotas disque.
+            </blockquote>
+			<span class="manref">Références : <a href="https://linux.die.net/man/1/chown" target="_blank">[chown @ linux.die]</a><a href="https://www.it-connect.fr/la-commande-chown/" target="_blank">[chown @ IT-Connect]</a><a href="https://www.gnu.org/software/coreutils/manual/html_node/chown-invocation.html" target="_blank">[chown @ GNU]</a><a href="https://www.malekal.com/chown-linux/" target="_blank">[chown @ Malekal]</a>
+			</span>
+        </div></div>
+        <div class="cmd-box"><div class="summary" onclick="toggle('find')"><span class="name">find</span><span class="desc">Recherche ultra-puissante dans l'arborescence.</span></div>
+        <div id="find" class="details">
+            <div class="flags"><code>find [chemin] [critères] [action]</code>. 
+                C'est un outil de filtrage sur les métadonnées du système de fichiers (inode). Il est tr&egrave;s utile pour retrouver des fichiers par nom, taille, date, propri&eacute;taire ou permissions, puis encha&icirc;ner avec une action.</div>
+				            <div class="pre-container">
+			<pre>
+-name <span class="flagdtl">pattern (par nom, sensible à la casse)</span>
+-iname <span class="flagdtl">pattern (par nom, insensible à la casse)</span>
+-type <span class="flagdtl">f/d (fichier / dossier)</span>
+-size <span class="flagdtl">n (par taille : +10M pour plus de 10 Mo, -1k pour moins de 1 ko)</span>
+-mtime <span class="flagdtl">n (par date de modification en jours : -7 pour les 7 derniers jours)</span>
+-user <span class="flagdtl">name (fichiers appartenant à un utilisateur précis)</span>
+-perm <span class="flagdtl">mode (par permissions exactes, ex: 777)</span>
+-exec <span class="flagdtl">command {} \; (exécute une commande sur chaque résultat trouvé)</span>
+-delete <span class="flagdtl">supprime directement les fichiers trouvés (à utiliser avec prudence !)</span>
+-maxdepth <span class="flagdtl">limite la profondeur de recherche</span>
+-empty <span class="flagdtl">cible les fichiers ou dossiers vides</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ find . -name "*.conf"
+<span class="comment"># Cherche tous les fichiers finissant par .conf dans le répertoire actuel et ses sous-dossiers.</span>
+<span style="color: #aaa">2.</span> $ find /var/log -type f -mtime -3
+<span class="comment"># Trouve les fichiers classiques modifiés au cours des 3 derniers jours dans /var/log.</span>
+<span style="color: #aaa">3.</span> $ find /tmp -user alice -exec rm {} \;
+<span class="comment"># Recherche tous les fichiers appartenant à alice dans /tmp et les supprime un par un.</span>
+<span style="color: #aaa">4.</span> $ find . -type f -size +100M
+<span class="comment"># Cherche uniquement des fichiers (-type f) de plus de 100 Mo dans le dossier actuel.</span>
+<span style="color: #aaa">5.</span> $ find /home -user alice
+<span class="comment"># Trouve tous les fichiers appartenant à l'utilisateur 'alice'.</span>
+<span style="color: #aaa">6.</span> $ find . -mtime -2
+<span class="comment"># Trouve les fichiers modifiés (-mtime) durant les dernières 48 heures.</span>
+<span style="color: #aaa">7.</span> $ find /tmp -type f -atime +10 -delete
+<span class="comment"># Trouve les fichiers n'ayant pas été accédés depuis plus de 10 jours et les supprime automatiquement.</span>
+<span style="color: #aaa">8.</span> $ find /etc -type f -name "*.conf"
+<span class="comment"># Trouve uniquement les fichiers (-type f) se terminant par .conf.</span>
+<span style="color: #aaa">9.</span> $ find /var/log -type d
+<span class="comment"># Liste uniquement les répertoires (-type d) dans le dossier des logs.</span>
+<span style="color: #aaa">10.</span> $ find /tmp -type f -empty
+<span class="comment"># Trouve tous les fichiers vides.</span>
+<span style="color: #aaa">11.</span> $ find . -perm 777
+<span class="comment"># Sécurité : Trouve les fichiers ayant des droits rwx pour tout le monde.</span>
+<span style="color: #aaa">12.</span> $ find /home -user alice -group developpeurs
+<span class="comment"># Recherche croisée par utilisateur ET par groupe.</span>
+<span style="color: #aaa">13.</span> $ find /var/log -name "*.log" -exec chmod 644 {} \;
+<span class="comment"># Cherche les logs et change leurs droits.
+Le '{}' représente le fichier trouvé, '\;' termine la commande.</span>
+<span style="color: #aaa">14.</span> $ find /tmp -name "*.tmp" -delete
+ <span class="comment"># Action directe : Supprime tous les fichiers trouvés sans passer par -exec (plus rapide).</span>
+<span style="color: #aaa">15.</span> $ find . -maxdepth 1 -type f
+<span class="comment"># Limite la recherche au dossier courant sans descendre dans les sous-r&eacute;pertoires.</span>
+<span style="color: #aaa">16.</span> $ find /srv -type d -empty
+<span class="comment"># Rep&egrave;re les dossiers vides, souvent utiles &agrave; nettoyer ou &agrave; v&eacute;rifier.</span></pre>
+		</div>
+            <blockquote>
+                <strong>Conseil :</strong> Testez toujours votre commande avec <code>-print</code> ou sans action avant d'utiliser <code>-delete</code> ou <code>-exec rm</code> pour éviter de supprimer des données importantes par erreur.
+            </blockquote>
+			<span class="manref">Références : <a href="https://blog.stephane-robert.info/docs/admin-serveurs/linux/find/" target="_blank">[Maîtriser Find @ stephane-robert]</a><a href="https://www.it-connect.fr/trier-des-fichiers-selon-une-date-avec-find/#III_La_syntaxe_de_la_commande_find" target="_blank">[find @ it-connect (fr)]</a><a href="https://linux.die.net/man/1/find" target="_blank">[find man @ linux-die (en)]</a><a href="https://www.malekal.com/commande-find-linux/" target="_blank">[find @ Malekal]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('chattr')"><span class="name">chattr</span><span class="desc">Change Attributes (Attributs système avancés).</span></div>
+        <div id="chattr" class="details">
+            <div class="flags">Modifie des attributs bas niveau au sein du système de fichiers (souvent ext4).</div>
+			            <div class="pre-container">
+			<pre>
++i <span class="flagdtl">immutable (rend le fichier impossible à modifier, supprimer, renommer ou lier)</span>
++a <span class="flagdtl">append only (permet d'ajouter des données à la fin, mais pas de supprimer ou modifier l'existant)</span>
++A <span class="flagdtl">no atime updates (ne met pas à jour la date de dernier accès, utile pour les performances)</span>
++c <span class="flagdtl">compressed (demande au noyau de compresser le fichier sur le disque)</span>
++s <span class="flagdtl">secure deletion (efface physiquement les données du disque lors de la suppression)</span>
+-R <span class="flagdtl">recursive (applique les attributs aux répertoires et à leur contenu)</span>
+-v <span class="flagdtl">version (affiche la version du programme)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ sudo chattr +i /etc/passwd
+<span class="comment"># Rend le fichier des utilisateurs immuable. Même root ne pourra pas le modifier sans retirer l'attribut.</span>
+<span style="color: #aaa">2.</span> $ sudo chattr -i /etc/passwd
+<span class="comment"># Retire la protection d'immuabilité pour permettre de nouveau les modifications.</span>
+<span style="color: #aaa">3.</span> $ sudo chattr +a /var/log/syslog
+<span class="comment"># Autorise uniquement l'ajout de texte à la fin du fichier (idéal pour sécuriser les logs).</span>
+<span style="color: #aaa">4.</span> $ lsattr mon_fichier
+<span class="comment"># Utilise la commande complémentaire 'lsattr' pour visualiser les attributs actifs.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.it-connect.fr/securisation-des-fichiers-avec-les-attributs-etendus-sous-gnu-linux/" target="_blank">[chattr @ it-connect (fr)]</a><a href="https://www.geeksforgeeks.org/linux-unix/chattr-command-in-linux-with-examples/" target="_blank">[chattr examples @ geeksforgeeks (en)]</a><a href="https://linux.die.net/man/1/chattr" target="_blank">[chattr man @ linux.die (en)]</a>
+			</span>
+        </div></div>
+    </section>
+<section class="cat" id="file2">
+        <h2>File & Directory Management - Lecture & Traitement</h2>
+
+
+<div class="cmd-box"><div class="summary" onclick="toggle('cat_pro')"><span class="name">cat</span><span class="desc">Concatenate (Affichage, création et fusion de fichiers)</span></div>
+        <div id="cat_pro" class="details">
+            <div class="flags">
+                <code>cat</code> lit les données d'un ou plusieurs fichiers et les écrit sur la sortie standard (le terminal). 
+                Il est souvent couplé aux opérateurs de redirection <code>&gt;</code> et <code>&gt;&gt;</code>.
+            </div>
+			            <div class="pre-container">
+			<pre>
+-n <span class="flagdtl">--number (numérote toutes les lignes)</span>
+-b <span class="flagdtl">--number-nonblank (numérote seulement les lignes remplies)</span>
+-s <span class="flagdtl">--squeeze-blank (condense les lignes vides multiples en une seule)</span>
+-v <span class="flagdtl">--show-nonprinting (affiche les caractères de contrôle non imprimables)</span>
+-e <span class="flagdtl">equivalent to -vE</span>
+-E <span class="flagdtl"> --show-ends : display $ at end of each line</span>
+-A <span class="flagdtl">--show-all (affiche tout : fins de ligne, tabulations et caractères invisibles)</span>
+            </pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ cat /etc/hostname
+<span class="comment"># Affiche simplement le nom de la machine à l'écran.</span>
+<span style="color: #aaa">2.</span> $ cat -n script.sh
+<span class="comment"># '-n' (number) : Affiche le contenu avec les numéros de lignes. Indispensable pour le débugging.</span>
+<span style="color: #aaa">3.</span> $ cat fichier1.txt >> fichier_existant.txt
+<span class="comment"># Ajoute (append) le contenu du premier fichier à la fin du second sans l'écraser.</span>
+<span style="color: #aaa">4.</span> $ cat > nouveau_fichier.txt
+<span class="comment"># Crée un fichier et attend que vous tapiez du texte. Appuyez sur Ctrl+D pour enregistrer et quitter.</span>
+<span style="color: #aaa">5.</span> $ cat fichier1.txt fichier2.txt > fusion.txt
+<span class="comment"># CONCATÉNATION : Fusionne le contenu des deux fichiers dans un troisième (écrase le contenu de fusion.txt).</span>
+<span style="color: #aaa">6.</span> $ cat -s logs.txt
+<span class="comment"># Nettoie l'affichage d'un fichier de log en supprimant les blocs de lignes vides inutiles.</span>
+<span style="color: #aaa">7.</span> $ cat /dev/null > mon_fichier.log
+<span class="comment"># Vide instantanément le contenu d'un fichier (pratique pour réinitialiser un log volumineux).</span>
+<span style="color: #aaa">8.</span> $ cat -A fichier_windows.txt
+<span class="comment"># Permet de voir les caractères cachés '^M' (CRLF) qui causent souvent des erreurs de script.</span>
+<span style="color: #aaa">9.</span> $ cat -e config.conf
+<span class="comment"># '-e' : Affiche un '$' à la fin de chaque ligne. Permet de repérer les espaces traînants invisibles.</span>
+<span style="color: #aaa">10.</span> $ cat &lt;&lt;EOF &gt; print.sh
+	#!/bin/bash
+	echo \$PWD
+	echo $PWD
+	EOF
+<span class="comment">   # Le fichier print.sh contiendra:</span>
+	#!/bin/bash
+	echo $PWD
+	echo /home/user
+<span class="comment"># Permet d'écrire plusieurs lignes dans un fichier directement depuis un script ou le terminal jusqu'à rencontrer la balise 'EOF'.</span>
+<span style="color: #aaa">12.</span> $ cat /var/log/syslog | grep "error"
+<span class="comment"># Envoie le contenu du log vers grep pour filtrer les erreurs.</span>
+            </pre>
+		</div>
+		<blockquote>
+                <strong>Note de performance :</strong> Pour lire de très gros fichiers, préférez <code>less</code> ou <code>tail</code>. <code>cat</code> tente de tout charger/afficher d'un coup, ce qui peut saturer votre terminal.
+            </blockquote>
+			<span class="manref">Références : <a href="https://www.malekal.com/exemples-pour-utiliser-la-commande-cat-sur-linux/" target="_blank">[cat @ Malekal]</a><a href="https://linux.die.net/man/1/cat" target="_blank">[cat @ linux.die]</a><a href="https://www.gnu.org/software/coreutils/manual/html_node/cat-invocation.html" target="_blank">[cat @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/cat.1.html" target="_blank">[cat @ man7]</a>
+			</span>
+        </div></div>
+<div class="cmd-box"><div class="summary" onclick="toggle('tac_pro')"><span class="name">tac</span><span class="desc">Reverse Cat (Affichage de fichiers à l'envers)</span></div>
+        <div id="tac_pro" class="details">
+            <div class="flags">
+                <code>tac</code> concatène et affiche les fichiers en inversant l'ordre des lignes. 
+                La dernière ligne du fichier devient la première affichée dans le terminal.
+            </div>
+            <div class="pre-container">
+			<pre>
+-b <span class="flagdtl">Ajoute un séparateur avant chaque ligne</span>
+-r <span class="flagdtl">Interprète le séparateur comme une expression régulière</span>
+-s <span class="flagdtl">Choisit le séparateur de blocs ou de lignes</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ tac /var/log/syslog
+<span class="comment"># Affiche le journal système en commençant par les entrées les plus récentes (utile si le fichier est court).</span>
+
+<span style="color: #aaa">2.</span> $ tac fichier.txt > inverse.txt
+<span class="comment"># Crée un nouveau fichier où l'ordre des lignes est strictement inversé par rapport à l'original.</span>
+
+<span style="color: #aaa">3.</span> $ tac /var/log/auth.log | grep "Failed password" | head -n 5
+<span class="comment"># Recherche les 5 dernières tentatives de connexion échouées en remontant le fichier de log.</span>
+
+<span style="color: #aaa">4.</span> $ tac -s "SECTION" notes.txt
+<span class="comment"># '-s' (separator) : Utilise un mot ou un caractère spécifique comme délimiteur au lieu du saut de ligne (\n). 
+   # Inverse l'ordre des blocs séparés par le mot "SECTION".</span>
+
+<span style="color: #aaa">5.</span> $ ls -1 | tac
+<span class="comment"># Liste les fichiers du répertoire courant (un par ligne) et inverse l'ordre alphabétique manuellement.</span>
+            </pre>
+            <blockquote>
+                <strong>Différence avec <code>tail -f</code> :</strong> Alors que <code>tail -f</code> attend les nouvelles lignes en continu, <code>tac</code> traite le fichier existant à l'instant T pour en inverser la lecture totale.
+            </blockquote>
+		</div>
+<span class="manref">Références : <a href="https://www.gnu.org/software/coreutils/manual/html_node/tac-invocation.html" target="_blank">[tac @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/tac.1.html" target="_blank">[tac @ man7]</a>
+			</span>
+        </div></div>
+        <div class="cmd-box"><div class="summary" onclick="toggle('head_tail')"><span class="name">head / tail</span><span class="desc">Lire le début ou la fin d'un fichier.</span></div>
+        <div id="head_tail" class="details">
+            <div class="flags">Indispensable pour les fichiers &eacute;normes (logs de plusieurs Go) que l'on ne veut pas charger enti&egrave;rement en m&eacute;moire. `head` donne un aper&ccedil;u rapide, `tail` est parfait pour voir les derni&egrave;res lignes et surveiller un fichier actif.</div>
+            <div class="pre-container">
+			<pre>
+-n <span class="flagdtl">Définit le nombre de lignes à afficher</span>
+-c <span class="flagdtl">Travaille en nombre d'octets au lieu des lignes</span>
+-f <span class="flagdtl">Avec `tail`, suit le fichier en temps réel</span>
+-F <span class="flagdtl">Suit le fichier même après rotation de log</span>
+-q / -v <span class="flagdtl">Masque ou force l'affichage du nom du fichier</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ head -n 20 /etc/passwd
+<span class="comment"># Affiche uniquement les 20 premières lignes du fichier.</span>
+<span style="color: #aaa">2.</span> $ tail -n 50 /var/log/apache2/error.log
+<span class="comment"># Affiche les 50 dernières erreurs enregistrées par le serveur web.</span>
+<span style="color: #aaa">3.</span> $ tail -f /var/log/auth.log
+<span class="comment"># L'option '-f' (follow) est vitale : elle laisse le fichier ouvert et affiche les nouvelles lignes EN DIRECT au fur et à mesure qu'elles s'écrivent. Utile pour surveiller une attaque ou un crash.</span>
+<span style="color: #aaa">4.</span> $ tail -F /var/log/nginx/access.log
+<span class="comment"># Plus robuste que `-f` si le fichier de log est renomm&eacute; ou recr&eacute;&eacute; par logrotate.</span>
+<span style="color: #aaa">5.</span> $ head -c 64 fichier.bin
+<span class="comment"># Affiche les 64 premiers octets. Pratique pour jeter un oeil &agrave; un fichier binaire ou &agrave; un en-t&ecirc;te.</span></pre>
+		</div>
+<span class="manref">Références : <a href="https://www.malekal.com/exemples-utiliser-la-commande-tail-sur-linux/" target="_blank">[tail @ Malekal]</a><a href="https://www.gnu.org/software/coreutils/manual/html_node/head-invocation.html" target="_blank">[head @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/tail.1.html" target="_blank">[tail @ man7]</a><a href="https://man7.org/linux/man-pages/man1/head.1.html" target="_blank">[head @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('less_more')"><span class="name">less / more</span><span class="desc">Paginateurs (Lecture interactive).</span></div>
+        <div id="less_more" class="details">
+            <div class="flags">Permettent de lire un fichier page par page. `less` est sup&eacute;rieur car il permet de remonter en arri&egrave;re, de chercher un motif, d'afficher les num&eacute;ros de ligne et m&ecirc;me de suivre un log.</div>
+            <div class="pre-container">
+			<pre>
+/motif <span class="flagdtl">Recherche en avant dans le fichier</span>
+?motif <span class="flagdtl">Recherche en arrière</span>
+-N <span class="flagdtl">Affiche les numéros de ligne</span>
+-S <span class="flagdtl">Désactive le retour à la ligne automatique</span>
++F <span class="flagdtl">Mode follow, proche de `tail -f`</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ less /var/log/syslog
+<span class="comment"># Ouvre le fichier en mode lecture. Utilisez 'Espace' pour descendre, 'b' pour remonter, '/' pour chercher un mot, et 'q' pour quitter.</span>
+<span style="color: #aaa">2.</span> $ command | less
+<span class="comment"># Pipe (redirige) la sortie d'une commande longue vers less pour pouvoir l'analyser tranquillement.</span>
+<span style="color: #aaa">3.</span> $ less -N /etc/ssh/sshd_config
+<span class="comment"># Affiche les num&eacute;ros de ligne, utile lorsqu'on doit ensuite modifier le fichier avec un &eacute;diteur.</span>
+<span style="color: #aaa">4.</span> $ less +F /var/log/syslog
+<span class="comment"># Suit le fichier comme un log vivant, puis `Ctrl+C` permet de revenir au mode lecture normal.</span></pre>
+		</div>
+<span class="manref">Références : <a href="https://www.greenwoodsoftware.com/less/" target="_blank">[less officiel]</a><a href="https://man7.org/linux/man-pages/man1/less.1.html" target="_blank">[less @ man7]</a><a href="https://www.malekal.com/commande-less-linux/" target="_blank">[less @ Malekal]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('grep_adv')"><span class="name">grep</span><span class="desc">Recherche de motifs textuels (Le couteau suisse).</span></div>
+        <div id="grep_adv" class="details">
+            <div class="flags">'grep' (Global Regular Expression Print) filtre les lignes correspondant &agrave; une recherche. C'est l'un des outils les plus puissants de Linux pour lire des logs, fouiller une arborescence de configuration ou retrouver une cha&icirc;ne dans du code.</div>
+            <div class="pre-container">
+			<pre>
+-i <span class="flagdtl">Ignore la casse</span>
+-r <span class="flagdtl">Recherche récursive dans un dossier</span>
+-v <span class="flagdtl">Inverse la sélection</span>
+-n <span class="flagdtl">Affiche les numéros de ligne</span>
+-E <span class="flagdtl">Active les expressions régulières étendues</span>
+-c <span class="flagdtl">Compte le nombre de lignes correspondantes</span>
+-w <span class="flagdtl">Cherche un mot entier uniquement</span>
+-A / -B / -C <span class="flagdtl">Affiche le contexte avant/apr&egrave;s la ligne trouv&eacute;e</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ grep "error" /var/log/syslog
+<span class="comment"># Affiche toutes les lignes contenant le mot exact "error".</span>
+<span style="color: #aaa">2.</span> $ grep -i "failed" /var/log/auth.log
+<span class="comment"># '-i' (ignore-case) cherche sans différencier minuscules et majuscules.</span>
+<span style="color: #aaa">3.</span> $ grep -r "192.168.1.1" /etc/nginx/
+<span class="comment"># '-r' (récursif) cherche l'IP dans tous les fichiers de configuration du dossier nginx.</span>
+<span style="color: #aaa">4.</span> $ grep -v "^#" config.conf
+<span class="comment"># '-v' (invert-match) affiche tout SAUF ce qui correspond. Ici, on cache les commentaires (lignes commençant par #).</span>
+<span style="color: #aaa">5.</span> $ grep -E "error|critical" log.txt
+<span class="comment"># '-E' (Extended Regex) permet d'utiliser des opérateurs logiques comme 'OU' (|).</span>
+<span style="color: #aaa">6.</span> $ grep -Rn "server_name" /etc/nginx/
+<span class="comment"># Recherche r&eacute;cursive avec num&eacute;ros de ligne dans toute une arborescence de configuration.</span>
+<span style="color: #aaa">7.</span> $ grep -C 2 "ERROR" app.log
+<span class="comment"># Affiche 2 lignes avant et apr&egrave;s chaque correspondance pour garder le contexte.</span></pre>
+		</div>
+<span class="manref">Références : <a href="https://www.malekal.com/exemples-de-commande-grep-sous-linux/" target="_blank">[grep @ Malekal]</a><a href="https://www.gnu.org/software/grep/manual/grep.html" target="_blank">[grep @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/grep.1.html" target="_blank">[grep @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('sed_adv')"><span class="name">sed</span><span class="desc">Stream Editor (Édition automatique de masse).</span></div>
+        <div id="sed_adv" class="details">
+            <div class="flags">Permet de modifier du texte "au vol" sans ouvrir le fichier manuellement. Id&eacute;al pour l'automatisation, les remplacements en masse et le nettoyage rapide de fichiers de configuration.</div>
+            <div class="pre-container">
+			<pre>
+-i <span class="flagdtl">Modifie directement le fichier</span>
+-n <span class="flagdtl">N'affiche pas automatiquement chaque ligne</span>
+-e <span class="flagdtl">Ajoute une commande sed supplémentaire</span>
+-E <span class="flagdtl">Active les expressions régulières étendues</span>
+-f <span class="flagdtl">Lit les commandes depuis un script sed</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ sed 's/localhost/127.0.0.1/g' file.txt
+<span class="comment"># 's' pour substitute. Remplace toutes ('g' pour global) les occurrences de 'localhost' par l'IP. (Affiche le résultat à l'écran).</span>
+<span style="color: #aaa">2.</span> $ sed -i 's/PORT=80/PORT=8080/' config.env
+<span class="comment"># '-i' (in-place) modifie DIRECTEMENT le fichier source. Très puissant, soyez sûr de votre commande !</span>
+<span style="color: #aaa">3.</span> $ sed '5,10d' file.txt
+<span class="comment"># 'd' pour delete. Supprime les lignes 5 à 10 du flux de sortie.</span>
+<span style="color: #aaa">4.</span> $ sed -n '1,20p' fichier.txt
+<span class="comment"># Avec `-n`, rien n'est affich&eacute; sauf ce qu'on demande explicitement via `p`.</span>
+<span style="color: #aaa">5.</span> $ sed -E 's/(user=).*/\\1alice/' app.conf
+<span class="comment"># Utilise une expression r&eacute;guli&egrave;re pour garder la cl&eacute; et remplacer seulement la valeur.</span></pre>
+		</div>
+<span class="manref">Références : <a href="https://www.gnu.org/software/sed/manual/sed.html" target="_blank">[sed @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/sed.1.html" target="_blank">[sed @ man7]</a><a href="https://www.malekal.com/commande-sed-linux/" target="_blank">[sed @ Malekal]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('awk_adv')"><span class="name">awk</span><span class="desc">Traitement de texte par colonnes.</span></div>
+        <div id="awk_adv" class="details">
+            <div class="flags">`awk` voit un fichier comme un tableau. Chaque mot est une variable ($1, $2, etc.). C'est parfait pour extraire des colonnes, filtrer des lignes et construire de petits rapports tr&egrave;s vite.</div>
+            <div class="pre-container">
+			<pre>
+-F <span class="flagdtl">Définit le séparateur de champs</span>
+-f <span class="flagdtl">Lit le programme awk depuis un fichier</span>
+-v var=val <span class="flagdtl">Passe une variable au script awk</span>
+BEGIN / END <span class="flagdtl">Blocs exécutés avant ou après le traitement</span>
+$1, $2... <span class="flagdtl">Référence les colonnes/champs</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ awk '{print $1, $3}' data.txt
+<span class="comment"># Affiche uniquement la première et la troisième colonne de chaque ligne.</span>
+<span style="color: #aaa">2.</span> $ awk -F':' '{print $1}' /etc/passwd
+<span class="comment"># '-F' définit le délimiteur. Ici, on utilise ':' pour extraire la liste des noms d'utilisateurs.</span>
+<span style="color: #aaa">3.</span> $ awk '$3 > 1000 {print $1}' /etc/passwd
+<span class="comment"># Condition : n'affiche le nom ($1) que si l'UID ($3) est supérieur à 1000 (utilisateurs normaux).</span>
+<span style="color: #aaa">4.</span> $ df -h | awk 'NR&gt;1 {print $1, $5}'
+<span class="comment"># Produit une vue tr&egrave;s compacte du filesystem et de son taux d'occupation.</span>
+<span style="color: #aaa">5.</span> $ awk 'BEGIN {FS=\":\"} {print NR, $1, $7}' /etc/passwd
+<span class="comment"># Construit un mini rapport avec num&eacute;ro de ligne, login et shell par d&eacute;faut.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://blog.stephane-robert.info/docs/admin-serveurs/linux/awk/" target="_blank">[awk @ Stephane Robert]</a><a href="https://www.gnu.org/software/gawk/manual/gawk.html" target="_blank">[awk/gawk @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/awk.1p.html" target="_blank">[awk @ POSIX]</a><a href="https://www.malekal.com/commande-awk-linux/" target="_blank">[awk @ Malekal]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('sort_uniq')"><span class="name">sort / uniq</span><span class="desc">Trier et dédoublonner.</span></div>
+        <div id="sort_uniq" class="details">
+            <div class="flags">Travaillent souvent ensemble pour nettoyer des listes.</div>
+            <div class="pre-container">
+			<pre>
+sort -n <span class="flagdtl">Trie numériquement</span>
+sort -r <span class="flagdtl">Inverse l'ordre du tri</span>
+sort -k <span class="flagdtl">Trie sur une colonne précise</span>
+uniq -c <span class="flagdtl">Compte les occurrences</span>
+uniq -d <span class="flagdtl">N'affiche que les doublons</span>
+uniq -u <span class="flagdtl">N'affiche que les lignes uniques</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ sort list.txt
+<span class="comment"># Trie par ordre alphabétique.</span>
+<span style="color: #aaa">2.</span> $ sort -n -r numbers.txt
+<span class="comment"># '-n' (numérique) et '-r' (reverse). Trie les nombres du plus grand au plus petit.</span>
+<span style="color: #aaa">3.</span> $ sort file.txt | uniq
+<span class="comment"># Supprime les lignes identiques adjacentes. (D'où l'importance de trier d'abord).</span>
+<span style="color: #aaa">4.</span> $ sort file.txt | uniq -c
+<span class="comment"># '-c' (count) compte combien de fois chaque ligne apparaît. Génial pour analyser les IPs dans un log.</span></pre>
+		</div>
+<span class="manref">Références : <a href="https://www.gnu.org/software/coreutils/manual/html_node/sort-invocation.html" target="_blank">[sort @ GNU]</a><a href="https://www.gnu.org/software/coreutils/manual/html_node/uniq-invocation.html" target="_blank">[uniq @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/sort.1.html" target="_blank">[sort @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('cut_wc')"><span class="name">cut / wc</span><span class="desc">Couper et Compter.</span></div>
+        <div id="cut_wc" class="details">
+            <div class="flags">Outils de mesure et de d&eacute;coupe chirurgicale. `cut` extrait des zones bien d&eacute;limitées, `wc` sert &agrave; mesurer rapidement la taille logique d'un fichier ou d'une sortie.</div>
+            <div class="pre-container">
+			<pre>
+cut -d <span class="flagdtl">Choisit le délimiteur</span>
+cut -f <span class="flagdtl">Extrait un ou plusieurs champs</span>
+cut -c <span class="flagdtl">Extrait des positions de caractères</span>
+wc -l <span class="flagdtl">Compte les lignes</span>
+wc -w <span class="flagdtl">Compte les mots</span>
+wc -c <span class="flagdtl">Compte les octets</span>
+wc -m <span class="flagdtl">Compte les caract&egrave;res</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ cut -c 1-10 file.txt
+<span class="comment"># Extrait les 10 premiers caractères de chaque ligne.</span>
+<span style="color: #aaa">2.</span> $ wc -l /var/log/syslog
+<span class="comment"># 'wc' (Word Count) avec '-l' (lines). Compte le nombre total de lignes dans le fichier.</span>
+<span style="color: #aaa">3.</span> $ wc -w
+<span class="comment"># Compte le nombre de mots.</span>
+<span style="color: #aaa">4.</span> $ cut -d: -f1,7 /etc/passwd
+<span class="comment"># Extrait le login et le shell par d&eacute;faut depuis un fichier s&eacute;par&eacute; par `:`.</span>
+<span style="color: #aaa">5.</span> $ ps -ef | wc -l
+<span class="comment"># Donne une estimation rapide du volume de lignes renvoy&eacute;es, donc ici du nombre de processus list&eacute;s.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.gnu.org/software/coreutils/manual/html_node/cut-invocation.html" target="_blank">[cut @ GNU]</a><a href="https://www.gnu.org/software/coreutils/manual/html_node/wc-invocation.html" target="_blank">[wc @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/cut.1.html" target="_blank">[cut @ man7]</a><a href="https://man7.org/linux/man-pages/man1/wc.1.html" target="_blank">[wc @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('diff_patch')"><span class="name">diff / patch</span><span class="desc">Comparer et mettre à jour.</span></div>
+        <div id="diff_patch" class="details">
+            <div class="flags">Base de la gestion de versions (comme Git).</div>
+            <div class="pre-container">
+			<pre>
+diff -u <span class="flagdtl">Format unifié, idéal pour un patch</span>
+diff -r <span class="flagdtl">Compare récursivement des dossiers</span>
+diff -q <span class="flagdtl">Indique seulement si les fichiers diffèrent</span>
+patch -pN <span class="flagdtl">Ajuste le niveau de chemin dans les fichiers patch</span>
+patch --dry-run <span class="flagdtl">Teste l'application sans modifier les fichiers</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ diff old_config.conf new_config.conf
+<span class="comment"># Affiche les lignes qui diffèrent entre les deux fichiers.</span>
+<span style="color: #aaa">2.</span> $ diff -u old.txt new.txt > fix.patch
+<span class="comment"># Crée un fichier de différence "unifié", lisible par l'outil patch.</span>
+<span style="color: #aaa">3.</span> $ patch old.txt < fix.patch
+<span class="comment"># Applique les changements contenus dans le patch au fichier original.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://man7.org/linux/man-pages/man1/diff.1.html" target="_blank">[diff @ man7]</a><a href="https://man7.org/linux/man-pages/man1/patch.1.html" target="_blank">[patch @ man7]</a><a href="https://www.gnu.org/software/diffutils/manual/" target="_blank">[diffutils @ GNU]</a>
+			</span>
+        </div></div>
+    </section>
+
+<section class="cat" id="monitoring">
+        <h2>Monitoring & System Info</h2>
+
+        <h3><span style="color: #aaa">1.</span> Processus & Ressources</h3>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('ps_cmd')"><span class="name">ps</span><span class="desc">Photographier les processus à un instant T.</span></div>
+        <div id="ps_cmd" class="details">
+            <div class="flags">`ps` n'est pas interactif : il capture l'état des processus au moment exact où vous lancez la commande. C'est parfait pour filtrer, trier et intégrer le résultat dans un script ou un diagnostic rapide.</div>
+            <div class="pre-container">
+			<pre>
+aux <span class="flagdtl">Syntaxe BSD très courante : tous les processus, format lisible, avec ceux sans terminal</span>
+-ef <span class="flagdtl">Syntaxe UNIX complète avec PPID et heure de démarrage</span>
+-u <span class="flagdtl">Filtre par utilisateur</span>
+-p <span class="flagdtl">Cible un ou plusieurs PID précis</span>
+--sort= <span class="flagdtl">Trie le résultat par CPU, mémoire, PID, etc.</span>
+-o <span class="flagdtl">Choisit précisément les colonnes à afficher</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ ps aux
+<span class="comment"># Vue d'ensemble la plus utilisée : PID, %CPU, %MEM, utilisateur, commande.</span>
+<span style="color: #aaa">2.</span> $ ps -ef --forest
+<span class="comment"># Montre la hiérarchie parent/enfant, utile pour comprendre qui a lancé quoi.</span>
+<span style="color: #aaa">3.</span> $ ps aux --sort=-%mem | head -n 10
+<span class="comment"># Classe les processus du plus gourmand en RAM au moins gourmand.</span>
+<span style="color: #aaa">4.</span> $ ps -u www-data -o pid,ppid,%cpu,%mem,cmd
+<span class="comment"># Sélection ciblée et affichage sur mesure pour diagnostiquer un service web.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.linuxtricks.fr/wiki/ps-lister-les-processus-sur-linux" target="_blank">[ps @ LinuxTricks]</a><a href="https://www.malekal.com/les-processus-sur-linux-comment-ca-marche/" target="_blank">[processus Linux @ Malekal]</a><a href="https://man7.org/linux/man-pages/man1/ps.1.html" target="_blank">[ps @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('top_cmd')"><span class="name">top</span><span class="desc">Surveiller les processus et la charge en temps réel.</span></div>
+        <div id="top_cmd" class="details">
+            <div class="flags">`top` est disponible quasiment partout. Il affiche à la fois l'état global du système et la liste des processus, avec une mise à jour en continu. Très utile pour repérer rapidement une saturation CPU, RAM ou load average.</div>
+            <div class="pre-container">
+			<pre>
+-d <span class="flagdtl">Définit l'intervalle de rafraîchissement</span>
+-u <span class="flagdtl">Affiche uniquement les processus d'un utilisateur</span>
+-p <span class="flagdtl">Surveille un PID précis</span>
+-b <span class="flagdtl">Mode batch : sortie exploitable dans un script</span>
+-o <span class="flagdtl">Trie sur une colonne donnée (%CPU, %MEM...)</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ top
+<span class="comment"># Affichage interactif standard. Touches utiles : P (CPU), M (mémoire), k (kill), q (quit).</span>
+<span style="color: #aaa">2.</span> $ top -u mysql
+<span class="comment"># Isole les processus de l'utilisateur mysql pour un diagnostic ciblé.</span>
+<span style="color: #aaa">3.</span> $ top -p 1234
+<span class="comment"># Surveille un seul processus en continu.</span>
+<span style="color: #aaa">4.</span> $ top -b -o +%MEM | head -n 20
+<span class="comment"># Version non interactive pratique pour journaliser ou copier le résultat.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.malekal.com/top-lister-processus-linux/" target="_blank">[top @ Malekal]</a><a href="https://www.malekal.com/trier-colonnes-top/" target="_blank">[trier top @ Malekal]</a><a href="https://man7.org/linux/man-pages/man1/top.1.html" target="_blank">[top @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('htop_cmd')"><span class="name">htop</span><span class="desc">Version plus lisible et ergonomique de top.</span></div>
+        <div id="htop_cmd" class="details">
+            <div class="flags">`htop` offre une navigation clavier plus confortable, des couleurs, des filtres, une vue en arbre et une meilleure lisibilité des CPU et de la mémoire. C'est souvent le meilleur choix pour une investigation interactive.</div>
+            <div class="pre-container">
+			<pre>
+-d <span class="flagdtl">Définit le délai de rafraîchissement</span>
+-u <span class="flagdtl">Filtre par utilisateur</span>
+-p <span class="flagdtl">Affiche des PID précis</span>
+--tree <span class="flagdtl">Affiche la hiérarchie des processus</span>
+-s <span class="flagdtl">Choisit la colonne de tri</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ htop
+<span class="comment"># Ouvre l'interface complète. F3 cherche, F4 filtre, F5 active la vue arbre.</span>
+<span style="color: #aaa">2.</span> $ htop -u www-data
+<span class="comment"># Utile pour observer uniquement un service et ses workers.</span>
+<span style="color: #aaa">3.</span> $ htop --tree
+<span class="comment"># Très pratique pour visualiser les processus parents et enfants.</span>
+<span style="color: #aaa">4.</span> $ htop -s PERCENT_MEM
+<span class="comment"># Trie dès l'ouverture par consommation mémoire.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.malekal.com/top-lister-processus-linux/" target="_blank">[top/htop @ Malekal]</a><a href="https://htop.dev/" target="_blank">[htop officiel]</a><a href="https://man7.org/linux/man-pages/man1/htop.1.html" target="_blank">[htop @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('kill_cmd')"><span class="name">kill</span><span class="desc">Envoyer un signal à un processus identifié par PID.</span></div>
+        <div id="kill_cmd" class="details">
+            <div class="flags">`kill` n'envoie pas forcément un arrêt brutal : il transmet un signal. Le bon réflexe est de commencer par `SIGTERM` (15), puis seulement si nécessaire de passer à `SIGKILL` (9).</div>
+            <div class="pre-container">
+			<pre>
+-l <span class="flagdtl">Liste les signaux disponibles</span>
+-15 <span class="flagdtl">SIGTERM : arrêt propre (par défaut)</span>
+-9 <span class="flagdtl">SIGKILL : arrêt immédiat et non interceptable</span>
+-HUP <span class="flagdtl">Demande souvent un rechargement de configuration</span>
+-STOP / -CONT <span class="flagdtl">Suspend ou reprend un processus</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ kill 1234
+<span class="comment"># Demande poliment au processus 1234 de s'arrêter.</span>
+<span style="color: #aaa">2.</span> $ kill -HUP 2451
+<span class="comment"># Fréquent pour demander à un démon de relire sa configuration.</span>
+<span style="color: #aaa">3.</span> $ kill -STOP 9876
+<span class="comment"># Met temporairement le processus en pause sans le terminer.</span>
+<span style="color: #aaa">4.</span> $ kill -9 1234
+<span class="comment"># Dernier recours si le processus est bloqué ou ignore TERM.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.malekal.com/les-processus-sur-linux-comment-ca-marche/" target="_blank">[processus & kill @ Malekal]</a><a href="https://www.linuxtricks.fr/wiki/quelques-commandes-utiles-a-connaitre-sous-linux" target="_blank">[mémo LinuxTricks]</a><a href="https://man7.org/linux/man-pages/man1/kill.1.html" target="_blank">[kill @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('pgrep_cmd')"><span class="name">pgrep / pkill</span><span class="desc">Chercher ou signaler des processus par nom, motif ou utilisateur.</span></div>
+        <div id="pgrep_cmd" class="details">
+            <div class="flags">`pgrep` évite de passer par un `ps | grep`. `pkill` reprend le même principe pour envoyer un signal à tous les processus correspondants. Très pratique pour l'administration quotidienne.</div>
+            <div class="pre-container">
+			<pre>
+-f <span class="flagdtl">Cherche dans toute la ligne de commande, pas seulement le nom</span>
+-u <span class="flagdtl">Filtre par utilisateur</span>
+-a <span class="flagdtl">Affiche aussi la ligne de commande avec le PID (pgrep)</span>
+-l <span class="flagdtl">Affiche le nom du processus avec le PID (pgrep)</span>
+-TERM / -HUP / -9 <span class="flagdtl">Choisit le signal à envoyer (pkill)</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ pgrep sshd
+<span class="comment"># Retourne les PID des processus `sshd`.</span>
+<span style="color: #aaa">2.</span> $ pgrep -a -u www-data php
+<span class="comment"># Affiche les PID et commandes complètes des processus PHP lancés par www-data.</span>
+<span style="color: #aaa">3.</span> $ pkill -HUP nginx
+<span class="comment"># Demande à tous les processus nginx de recharger leur configuration.</span>
+<span style="color: #aaa">4.</span> $ pkill -f "python3 app.py"
+<span class="comment"># Tue les processus dont la ligne de commande correspond exactement au motif.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.malekal.com/les-processus-sur-linux-comment-ca-marche/" target="_blank">[processus Linux @ Malekal]</a><a href="https://man7.org/linux/man-pages/man1/pgrep.1.html" target="_blank">[pgrep/pkill @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('free_cmd')"><span class="name">free</span><span class="desc">Lire rapidement l'état de la mémoire RAM et du swap.</span></div>
+        <div id="free_cmd" class="details">
+            <div class="flags">`free` est la commande la plus rapide pour vérifier si une machine manque réellement de mémoire. La colonne clé à surveiller est souvent `available`, plus pertinente que `free` sur les systèmes Linux modernes.</div>
+            <div class="pre-container">
+			<pre>
+-h <span class="flagdtl">Affichage lisible en K/M/G</span>
+-m <span class="flagdtl">Affichage en mégaoctets</span>
+-g <span class="flagdtl">Affichage en gigaoctets</span>
+-s <span class="flagdtl">Rafraîchit périodiquement</span>
+-w <span class="flagdtl">Sépare buffers et cache dans l'affichage</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ free -h
+<span class="comment"># Vue générale immédiate de la RAM et du swap.</span>
+<span style="color: #aaa">2.</span> $ free -m
+<span class="comment"># Pratique pour comparer des valeurs chiffrées dans un ticket ou un rapport.</span>
+<span style="color: #aaa">3.</span> $ free -h -s 2
+<span class="comment"># Rafraîchit toutes les 2 secondes pour suivre une montée de consommation.</span>
+<span style="color: #aaa">4.</span> $ free -w -h
+<span class="comment"># Affiche séparément buffers et cache, utile pour une lecture plus fine.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.linuxtricks.fr/wiki/performance-memoire-avec-free-et-vmstat" target="_blank">[free/vmstat @ LinuxTricks]</a><a href="https://www.linuxtricks.fr/wiki/quelques-commandes-utiles-a-connaitre-sous-linux" target="_blank">[coreutils @ LinuxTricks]</a><a href="https://man7.org/linux/man-pages/man1/free.1.html" target="_blank">[free @ man7]</a>
+			</span>
+        </div></div>
+
+        <h3><span style="color: #aaa">2.</span> Gestion du Réseau (Focus Connectivité)</h3>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('ip_cmd2')"><span class="name">ip</span><span class="desc">Consulter les interfaces, adresses IP et routes.</span></div>
+        <div id="ip_cmd2" class="details">
+            <div class="flags">`ip` remplace les anciens `ifconfig`, `route` et `arp`. C'est la commande moderne de référence pour lire ou ajuster rapidement l'état réseau d'une machine Linux.</div>
+            <div class="pre-container">
+			<pre>
+addr show <span class="flagdtl">Affiche les adresses IP des interfaces</span>
+link show <span class="flagdtl">Affiche l'état des interfaces (UP/DOWN, MTU...)</span>
+route show <span class="flagdtl">Affiche la table de routage</span>
+-4 / -6 <span class="flagdtl">Force IPv4 ou IPv6</span>
+-c <span class="flagdtl">Active les couleurs</span>
+link set dev IFACE up|down <span class="flagdtl">Active ou coupe une interface</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ ip -c addr show
+<span class="comment"># Affiche clairement toutes les interfaces et leurs IP.</span>
+<span style="color: #aaa">2.</span> $ ip route show
+<span class="comment"># Permet d'identifier la passerelle par défaut (`default via ...`).</span>
+<span style="color: #aaa">3.</span> $ ip -4 addr show dev eth0
+<span class="comment"># Filtre sur une interface et uniquement en IPv4.</span>
+<span style="color: #aaa">4.</span> $ sudo ip link set dev eth0 down
+<span class="comment"># Désactive l'interface. Faire l'inverse avec `up` pour la réactiver.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.linuxtricks.fr/wiki/la-commande-ip-reseau-interfaces-routage-table-arp" target="_blank">[ip @ LinuxTricks]</a><a href="https://www.it-connect.fr/top-15-des-commandes-linux-pour-administrer-et-diagnostiquer-le-reseau/" target="_blank">[diagnostic réseau @ IT-Connect]</a><a href="https://man7.org/linux/man-pages/man8/ip.8.html" target="_blank">[ip @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('ss_cmd2')"><span class="name">ss</span><span class="desc">Lister les sockets et les ports ouverts.</span></div>
+        <div id="ss_cmd2" class="details">
+            <div class="flags">`ss` est le remplaçant moderne de `netstat`. Il permet de voir rapidement quels ports sont en écoute, quelles connexions sont établies, et quel processus tient chaque socket.</div>
+            <div class="pre-container">
+			<pre>
+-l <span class="flagdtl">Affiche uniquement les sockets en écoute</span>
+-t <span class="flagdtl">Filtre sur TCP</span>
+-u <span class="flagdtl">Filtre sur UDP</span>
+-n <span class="flagdtl">Garde les IP/ports en numérique</span>
+-p <span class="flagdtl">Montre le processus lié à la socket</span>
+-a <span class="flagdtl">Affiche écoute + connexions établies</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ ss -tulpn
+<span class="comment"># La commande réflexe pour savoir quel service écoute sur quel port.</span>
+<span style="color: #aaa">2.</span> $ ss -ant
+<span class="comment"># Affiche les connexions TCP actives, sans résolution de noms.</span>
+<span style="color: #aaa">3.</span> $ ss -ltnp
+<span class="comment"># N'affiche que les sockets TCP en écoute avec le processus associé.</span>
+<span style="color: #aaa">4.</span> $ ss -uap
+<span class="comment"># Très utile pour inspecter les sockets UDP ou UNIX.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.linuxtricks.fr/wiki/ss-informations-sur-les-connexions-tcp-udp-et-sockets-reseau-remplace-netstat" target="_blank">[ss @ LinuxTricks]</a><a href="https://www.it-connect.fr/netstat-lactivite-reseau-des-serveurs/" target="_blank">[netstat/ss @ IT-Connect]</a><a href="https://man7.org/linux/man-pages/man8/ss.8.html" target="_blank">[ss @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('ping_cmd2')"><span class="name">ping</span><span class="desc">Tester la joignabilité et la latence réseau.</span></div>
+        <div id="ping_cmd2" class="details">
+            <div class="flags">`ping` est le premier test de base quand un hôte semble inaccessible. Il vérifie la connectivité IP et donne une idée de la latence et des pertes de paquets. Attention : certains équipements bloquent l'ICMP.</div>
+            <div class="pre-container">
+			<pre>
+-c <span class="flagdtl">Limite le nombre de paquets envoyés</span>
+-i <span class="flagdtl">Définit l'intervalle entre deux envois</span>
+-4 / -6 <span class="flagdtl">Force IPv4 ou IPv6</span>
+-s <span class="flagdtl">Change la taille du payload</span>
+-W <span class="flagdtl">Fixe le timeout d'attente d'une réponse</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ ping -c 4 1.1.1.1
+<span class="comment"># Vérifie rapidement si la sortie Internet fonctionne sans dépendre du DNS.</span>
+<span style="color: #aaa">2.</span> $ ping -c 4 google.com
+<span class="comment"># Teste à la fois la résolution DNS et la connectivité.</span>
+<span style="color: #aaa">3.</span> $ ping -4 -c 4 example.com
+<span class="comment"># Force le test en IPv4 si l'IPv6 perturbe le diagnostic.</span>
+<span style="color: #aaa">4.</span> $ ping -i 0.2 -c 20 serveur.local
+<span class="comment"># Permet d'observer la stabilité et une éventuelle perte de paquets sur une courte période.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.it-connect.fr/le-ping-pour-les-debutants/" target="_blank">[ping @ IT-Connect]</a><a href="https://www.it-connect.fr/top-15-des-commandes-linux-pour-administrer-et-diagnostiquer-le-reseau/" target="_blank">[diagnostic réseau @ IT-Connect]</a><a href="https://man7.org/linux/man-pages/man8/ping.8.html" target="_blank">[ping @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('dig_cmd2')"><span class="name">dig</span><span class="desc">Interroger le DNS et vérifier les résolutions.</span></div>
+        <div id="dig_cmd2" class="details">
+            <div class="flags">`dig` sert à savoir ce qu'un serveur DNS répond réellement. Il est indispensable quand un nom de domaine ne se résout pas, répond vers la mauvaise IP, ou présente un problème de propagation.</div>
+            <div class="pre-container">
+			<pre>
++short <span class="flagdtl">Affiche uniquement la réponse utile</span>
+@serveurDNS <span class="flagdtl">Interroge un serveur DNS précis</span>
+-t TYPE <span class="flagdtl">Demande un type d'enregistrement précis (A, AAAA, MX...)</span>
+-x <span class="flagdtl">Fait une résolution inverse à partir d'une IP</span>
++trace <span class="flagdtl">Suit toute la chaîne de résolution DNS</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ dig +short example.com
+<span class="comment"># Retourne uniquement l'adresse IP trouvée, sans le bruit du reste.</span>
+<span style="color: #aaa">2.</span> $ dig @1.1.1.1 example.com
+<span class="comment"># Compare la réponse d'un résolveur spécifique à celle du DNS local.</span>
+<span style="color: #aaa">3.</span> $ dig -t MX example.com
+<span class="comment"># Affiche les enregistrements mail du domaine.</span>
+<span style="color: #aaa">4.</span> $ dig -x 8.8.8.8
+<span class="comment"># Résolution inverse : utile en diagnostic réseau ou mail.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.it-connect.fr/top-15-des-commandes-linux-pour-administrer-et-diagnostiquer-le-reseau/" target="_blank">[diagnostic réseau @ IT-Connect]</a><a href="https://man7.org/linux/man-pages/man1/dig.1.html" target="_blank">[dig @ man7]</a><a href="https://www.redhat.com/en/blog/deprecated-linux-command-replacements" target="_blank">[outils réseau modernes @ Red Hat]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('nc_cmd2')"><span class="name">nc</span><span class="desc">Tester un port TCP/UDP et manipuler un flux réseau brut.</span></div>
+        <div id="nc_cmd2" class="details">
+            <div class="flags">`nc` (netcat) est une vraie boîte à outils réseau. En administration, on l'utilise très souvent pour tester si un port est ouvert, écouter un flux ou transférer rapidement un fichier entre deux machines.</div>
+            <div class="pre-container">
+			<pre>
+-z <span class="flagdtl">Mode scan : teste sans envoyer de données applicatives</span>
+-v <span class="flagdtl">Mode verbeux</span>
+-u <span class="flagdtl">Travaille en UDP au lieu de TCP</span>
+-l <span class="flagdtl">Passe en écoute côté serveur</span>
+-w <span class="flagdtl">Définit un timeout</span>
+-p <span class="flagdtl">Précise le port d'écoute selon les implémentations</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ nc -zv 192.168.1.10 22
+<span class="comment"># Vérifie si le port SSH est joignable.</span>
+<span style="color: #aaa">2.</span> $ nc -zvu 192.168.1.10 53
+<span class="comment"># Test rapide d'un port UDP, ici DNS.</span>
+<span style="color: #aaa">3.</span> $ nc -l -p 1234
+<span class="comment"># Met la machine en écoute sur le port 1234 pour recevoir un flux.</span>
+<span style="color: #aaa">4.</span> $ nc -w 2 192.168.1.10 1234 &lt; fichier.txt
+<span class="comment"># Envoie le contenu d'un fichier vers la machine en écoute.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.linuxtricks.fr/wiki/nc-netcat-la-boite-a-outils-reseau" target="_blank">[nc @ LinuxTricks]</a><a href="https://man7.org/linux/man-pages/man1/nc.1.html" target="_blank">[nc @ man7]</a>
+			</span>
+        </div></div>
+
+        <h3><span style="color: #aaa">3.</span> Espace Disque & Infos Système</h3>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('df_cmd2')"><span class="name">df</span><span class="desc">Voir l'espace disponible par système de fichiers.</span></div>
+        <div id="df_cmd2" class="details">
+            <div class="flags">`df` répond à la question "quelle partition est pleine ?". Il affiche l'occupation de chaque système de fichiers monté, ce qui en fait le réflexe numéro un quand un serveur signale un manque d'espace disque.</div>
+            <div class="pre-container">
+			<pre>
+-h <span class="flagdtl">Affichage lisible en K/M/G</span>
+-T <span class="flagdtl">Affiche le type de système de fichiers</span>
+-i <span class="flagdtl">Affiche l'utilisation des inodes</span>
+-x TYPE <span class="flagdtl">Exclut un type de filesystem (tmpfs, squashfs...)</span>
+-a <span class="flagdtl">Inclut aussi les filesystems à 0 bloc</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ df -h
+<span class="comment"># Vue standard de l'espace libre et utilisé sur tous les points de montage.</span>
+<span style="color: #aaa">2.</span> $ df -hT
+<span class="comment"># Ajoute le type de filesystem, utile pour distinguer ext4, xfs, tmpfs, etc.</span>
+<span style="color: #aaa">3.</span> $ df -i
+<span class="comment"># Détecte un problème d'inodes épuisés, fréquent avec énormément de petits fichiers.</span>
+<span style="color: #aaa">4.</span> $ df -h -x tmpfs -x squashfs
+<span class="comment"># Nettoie l'affichage pour se concentrer sur les vrais volumes de stockage.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.linuxtricks.fr/wiki/quelques-commandes-utiles-a-connaitre-sous-linux" target="_blank">[df @ LinuxTricks]</a><a href="https://man7.org/linux/man-pages/man1/df.1.html" target="_blank">[df @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('du_cmd2')"><span class="name">du</span><span class="desc">Mesurer la taille des dossiers et trouver les plus lourds.</span></div>
+        <div id="du_cmd2" class="details">
+            <div class="flags">`du` complète `df` : une fois qu'on sait quel volume est saturé, `du` permet de découvrir quels répertoires ou fichiers prennent réellement la place.</div>
+            <div class="pre-container">
+			<pre>
+-s <span class="flagdtl">Affiche uniquement le total du chemin ciblé</span>
+-h <span class="flagdtl">Affichage lisible en K/M/G</span>
+-a <span class="flagdtl">Inclut aussi les fichiers, pas seulement les dossiers</span>
+--max-depth=N <span class="flagdtl">Limite la profondeur d'analyse</span>
+-x <span class="flagdtl">Reste sur le filesystem courant</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ du -sh /var/log
+<span class="comment"># Taille totale du dossier de logs.</span>
+<span style="color: #aaa">2.</span> $ du -h --max-depth=1 /home
+<span class="comment"># Affiche la taille de chaque dossier utilisateur au premier niveau.</span>
+<span style="color: #aaa">3.</span> $ du -ah /var | sort -hr | head -n 20
+<span class="comment"># Liste les fichiers/dossiers les plus lourds dans /var.</span>
+<span style="color: #aaa">4.</span> $ du -xhd 1 /
+<span class="comment"># Analyse la racine sans traverser d'autres systèmes de fichiers montés.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.linuxtricks.fr/wiki/du-afficher-la-taille-des-dossiers-et-des-fichiers" target="_blank">[du @ LinuxTricks]</a><a href="https://man7.org/linux/man-pages/man1/du.1.html" target="_blank">[du @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('lsof_cmd2')"><span class="name">lsof</span><span class="desc">Lister les fichiers et sockets ouverts par les processus.</span></div>
+        <div id="lsof_cmd2" class="details">
+            <div class="flags">`lsof` est redoutable pour comprendre quel processus tient un fichier, un port ou un montage occupé. C'est souvent la commande qui débloque un `umount: target is busy` ou qui identifie le programme derrière un port réseau.</div>
+            <div class="pre-container">
+			<pre>
+-i <span class="flagdtl">Filtre sur les sockets réseau</span>
+-i :PORT <span class="flagdtl">Filtre sur un port précis</span>
+-u <span class="flagdtl">Filtre par utilisateur</span>
+-p <span class="flagdtl">Filtre par PID</span>
++c 15 <span class="flagdtl">Allonge la largeur du nom de commande</span>
++D <span class="flagdtl">Liste les fichiers ouverts sous un répertoire</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ lsof -i :80
+<span class="comment"># Identifie le processus qui écoute ou utilise le port 80.</span>
+<span style="color: #aaa">2.</span> $ lsof +D /var/log/nginx
+<span class="comment"># Montre quels processus gardent ouverts des fichiers dans ce dossier.</span>
+<span style="color: #aaa">3.</span> $ lsof -u mysql
+<span class="comment"># Isole tout ce que l'utilisateur mysql a actuellement ouvert.</span>
+<span style="color: #aaa">4.</span> $ lsof /dev/sdb1
+<span class="comment"># Très utile avant un démontage de volume bloqué.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.linuxtricks.fr/wiki/lsof-lister-les-fichiers-ou-sockets-ouverts" target="_blank">[lsof @ LinuxTricks]</a><a href="https://man7.org/linux/man-pages/man8/lsof.8.html" target="_blank">[lsof @ man7]</a><a href="https://commandexamples.com/linux/lsof" target="_blank">[lsof exemples]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('uptime_cmd2')"><span class="name">uptime</span><span class="desc">Connaître le temps de fonctionnement et la charge moyenne.</span></div>
+        <div id="uptime_cmd2" class="details">
+            <div class="flags">`uptime` donne en une ligne trois informations cruciales : depuis combien de temps la machine tourne, combien d'utilisateurs sont connectés, et surtout les `load average` sur 1, 5 et 15 minutes.</div>
+            <div class="pre-container">
+			<pre>
+-p <span class="flagdtl">Affichage lisible du temps de fonctionnement</span>
+-s <span class="flagdtl">Affiche l'heure exacte de démarrage</span>
+-V <span class="flagdtl">Version de l'outil</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ uptime
+<span class="comment"># Affiche la ligne complète avec load average 1/5/15 min.</span>
+<span style="color: #aaa">2.</span> $ uptime -p
+<span class="comment"># Retour plus lisible, par exemple "up 3 days, 4 hours".</span>
+<span style="color: #aaa">3.</span> $ uptime -s
+<span class="comment"># Donne la date/heure exacte du dernier démarrage.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.linuxtricks.fr/wiki/performance-cpu-et-load-average-avec-vmstat-et-uptime" target="_blank">[uptime @ LinuxTricks]</a><a href="https://www.tecmint.com/linux-uptime-command-examples/" target="_blank">[uptime @ Tecmint]</a><a href="https://man7.org/linux/man-pages/man1/uptime.1.html" target="_blank">[uptime @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('uname_cmd2')"><span class="name">uname</span><span class="desc">Afficher des informations sur le noyau et l'architecture.</span></div>
+        <div id="uname_cmd2" class="details">
+            <div class="flags">`uname` sert surtout à identifier le noyau Linux et l'architecture matérielle. C'est très utile pour vérifier la compatibilité d'un paquet, d'un binaire, ou documenter précisément l'environnement système.</div>
+            <div class="pre-container">
+			<pre>
+-a <span class="flagdtl">Affiche toutes les informations principales</span>
+-r <span class="flagdtl">Version du noyau</span>
+-m <span class="flagdtl">Architecture matérielle (x86_64, aarch64...)</span>
+-n <span class="flagdtl">Nom réseau de la machine</span>
+-o <span class="flagdtl">Nom du système d'exploitation</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ uname -a
+<span class="comment"># Vue complète du noyau, version, hostname et architecture.</span>
+<span style="color: #aaa">2.</span> $ uname -r
+<span class="comment"># Affiche uniquement la release du noyau Linux.</span>
+<span style="color: #aaa">3.</span> $ uname -m
+<span class="comment"># Très utile pour savoir si la machine est en x86_64, arm64, etc.</span>
+<span style="color: #aaa">4.</span> $ uname -o
+<span class="comment"># Affiche le nom de l'OS, souvent `GNU/Linux`.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.linuxtricks.fr/wiki/quelques-commandes-utiles-a-connaitre-sous-linux" target="_blank">[uname @ LinuxTricks]</a><a href="https://linuxize.com/post/uname-command-in-linux/" target="_blank">[uname @ Linuxize]</a><a href="https://man7.org/linux/man-pages/man1/uname.1.html" target="_blank">[uname @ man7]</a>
+			</span>
+        </div></div>
+
+        <h3><span style="color: #aaa">4.</span> Statistiques avancées</h3>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('vmstat_cmd2')"><span class="name">vmstat</span><span class="desc">Observer mémoire, CPU, swap et I/O sur la durée.</span></div>
+        <div id="vmstat_cmd2" class="details">
+            <div class="flags">`vmstat` est excellent pour détecter les symptômes d'une saturation progressive : swap qui grimpe, CPU en attente d'I/O, files d'exécution qui grossissent, etc. Il est particulièrement utile lorsqu'un serveur ralentit sans cause évidente.</div>
+            <div class="pre-container">
+			<pre>
+-a <span class="flagdtl">Affiche mémoire active/inactive</span>
+-s <span class="flagdtl">Affiche un résumé détaillé des compteurs</span>
+-w <span class="flagdtl">Élargit l'affichage pour éviter les colonnes tronquées</span>
+-t <span class="flagdtl">Ajoute un timestamp</span>
+DELAY COUNT <span class="flagdtl">Rafraîchit périodiquement un nombre donné de fois</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ vmstat 1 5
+<span class="comment"># Cinq relevés espacés d'une seconde pour observer une tendance récente.</span>
+<span style="color: #aaa">2.</span> $ vmstat -w 2 10
+<span class="comment"># Même principe avec colonnes élargies, plus lisible sur grosses machines.</span>
+<span style="color: #aaa">3.</span> $ vmstat -s
+<span class="comment"># Résumé global utile pour un rapport rapide.</span>
+<span style="color: #aaa">4.</span> $ vmstat -t 1 5
+<span class="comment"># Ajoute l'horodatage à chaque ligne, pratique pour corréler avec d'autres logs.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.linuxtricks.fr/wiki/performance-memoire-avec-free-et-vmstat" target="_blank">[vmstat @ LinuxTricks]</a><a href="https://phoenixnap.com/kb/vmstat-command" target="_blank">[vmstat @ PhoenixNAP]</a><a href="https://man7.org/linux/man-pages/man8/vmstat.8.html" target="_blank">[vmstat @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('mpstat_cmd2')"><span class="name">mpstat</span><span class="desc">Lire l'utilisation CPU globale et cœur par cœur.</span></div>
+        <div id="mpstat_cmd2" class="details">
+            <div class="flags">`mpstat` fait partie de `sysstat`. Il est précieux sur les machines multi-cœurs, car il montre si la charge est équilibrée ou si un seul CPU est saturé alors que les autres restent calmes.</div>
+            <div class="pre-container">
+			<pre>
+-P ALL <span class="flagdtl">Affiche les stats pour chaque CPU</span>
+-u <span class="flagdtl">Affiche l'utilisation CPU</span>
+-I SUM <span class="flagdtl">Affiche les interruptions agrégées</span>
+DELAY COUNT <span class="flagdtl">Rafraîchit périodiquement</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ mpstat
+<span class="comment"># Donne la moyenne CPU globale depuis le démarrage ou depuis le dernier échantillon.</span>
+<span style="color: #aaa">2.</span> $ mpstat -P ALL 1 5
+<span class="comment"># Montre l'activité de chaque cœur pendant 5 secondes.</span>
+<span style="color: #aaa">3.</span> $ mpstat -u 2 3
+<span class="comment"># Se concentre sur l'utilisation CPU avec trois relevés espacés de 2 secondes.</span>
+<span style="color: #aaa">4.</span> $ mpstat -I SUM 1 3
+<span class="comment"># Utile pour voir si une tempête d'interruptions dégrade la machine.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.tecmint.com/sysstat-commands-to-monitor-linux/" target="_blank">[mpstat @ Tecmint]</a><a href="https://man7.org/linux/man-pages/man1/mpstat.1.html" target="_blank">[mpstat @ man7]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('iostat_cmd2')"><span class="name">iostat</span><span class="desc">Analyser l'activité disque et l'attente I/O.</span></div>
+        <div id="iostat_cmd2" class="details">
+            <div class="flags">`iostat` est indispensable quand un système semble lent à cause du stockage. Il aide à voir si les disques sont sollicités, si le temps d'attente (`await`) grimpe, ou si une partition spécifique concentre l'activité.</div>
+            <div class="pre-container">
+			<pre>
+-d <span class="flagdtl">Affiche les statistiques de périphériques</span>
+-x <span class="flagdtl">Affichage étendu (await, util, svctm...)</span>
+-m <span class="flagdtl">Affiche les débits en Mo/s</span>
+-p DEVICE <span class="flagdtl">Inclut les partitions d'un périphérique</span>
+-y <span class="flagdtl">Ignore le premier rapport depuis le boot</span>
+DELAY COUNT <span class="flagdtl">Rafraîchit périodiquement</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ iostat
+<span class="comment"># Vue d'ensemble CPU + I/O depuis le démarrage.</span>
+<span style="color: #aaa">2.</span> $ iostat -x 1 5
+<span class="comment"># Le mode le plus utile pour diagnostiquer un stockage lent en temps quasi réel.</span>
+<span style="color: #aaa">3.</span> $ iostat -mx 2 5
+<span class="comment"># Affiche les débits en Mo/s avec détails étendus.</span>
+<span style="color: #aaa">4.</span> $ iostat -y -p sda 1 3
+<span class="comment"># Ignore le premier relevé historique et cible un disque précis avec ses partitions.</span></pre>
+		</div>
+			<span class="manref">Références : <a href="https://www.tecmint.com/linux-performance-monitoring-with-vmstat-and-iostat-commands/" target="_blank">[iostat @ Tecmint]</a><a href="https://commandexamples.com/linux/iostat" target="_blank">[iostat exemples]</a><a href="https://man7.org/linux/man-pages/man1/iostat.1.html" target="_blank">[iostat @ man7]</a>
+			</span>
+        </div></div>
+    </section>
+
+<section class="cat"  id="sysadmin">
+        <h2>System Administration</h2>
+
+        <h3><span style="color: #aaa">1.</span> Services (Systemd), logs et paquets</h3>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('systemctl_adv')"><span class="name">systemctl</span><span class="desc">G&eacute;rer les services syst&egrave;me (d&eacute;mons).</span></div>
+        <div id="systemctl_adv" class="details">
+            <div class="flags">`systemctl` est la commande-cl&eacute; de systemd. Elle sert &agrave; d&eacute;marrer, arr&ecirc;ter, activer au boot et diagnostiquer les services comme SSH, nginx, Docker ou MariaDB.</div>
+            <div class="pre-container">
+			<pre>
+start <span class="flagdtl">D&eacute;marre un service imm&eacute;diatement</span>
+stop <span class="flagdtl">Arr&ecirc;te le service proprement</span>
+restart <span class="flagdtl">Red&eacute;marre le service</span>
+status <span class="flagdtl">Affiche l'&eacute;tat, le PID, les derniers logs</span>
+enable <span class="flagdtl">Active le lancement automatique au d&eacute;marrage</span>
+disable <span class="flagdtl">D&eacute;sactive le lancement automatique</span>
+daemon-reload <span class="flagdtl">Recharge les unit files apr&egrave;s modification</span>
+list-units --type=service <span class="flagdtl">Liste les services charg&eacute;s</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ sudo systemctl start nginx
+<span class="comment"># D&eacute;marre nginx tout de suite, sans modifier son comportement au prochain boot.</span>
+<span style="color: #aaa">2.</span> $ sudo systemctl enable --now ssh
+<span class="comment"># Active le service au d&eacute;marrage ET le lance imm&eacute;diatement.</span>
+<span style="color: #aaa">3.</span> $ systemctl status docker
+<span class="comment"># Le meilleur premier r&eacute;flexe pour voir si un service tourne et pourquoi il &eacute;choue.</span>
+<span style="color: #aaa">4.</span> $ sudo systemctl daemon-reload
+<span class="comment"># A lancer apr&egrave;s modification d'un fichier `.service` pour que systemd relise sa configuration.</span>
+<span style="color: #aaa">5.</span> $ systemctl list-units --type=service --state=failed
+<span class="comment"># Affiche rapidement les services en erreur sur la machine.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://www.freedesktop.org/software/systemd/man/systemctl.html" target="_blank">[systemctl @ systemd]</a><a href="https://man7.org/linux/man-pages/man1/systemctl.1.html" target="_blank">[systemctl @ man7]</a><a href="https://www.linuxtricks.fr/wiki/systemd-creer-des-unites-services-timers-mount" target="_blank">[systemd @ LinuxTricks]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('journalctl_adv')"><span class="name">journalctl</span><span class="desc">Consulter les logs centralis&eacute;s du syst&egrave;me.</span></div>
+        <div id="journalctl_adv" class="details">
+            <div class="flags">Le journal systemd agr&egrave;ge les messages du noyau, des services et du syst&egrave;me. `journalctl` permet de filtrer par service, priorit&eacute; ou plage temporelle.</div>
+			<div class="pre-container">
+			<pre>
+-u <span class="flagdtl">Filtre par unit/service</span>
+-f <span class="flagdtl">Suit les nouveaux logs en temps r&eacute;el</span>
+-p <span class="flagdtl">Filtre par niveau (err, warning, info...)</span>
+--since / --until <span class="flagdtl">Filtre par date ou p&eacute;riode</span>
+-b <span class="flagdtl">Affiche uniquement le boot courant</span>
+-xe <span class="flagdtl">Montre le contexte d'erreur le plus utile</span>
+-n <span class="flagdtl">Limite au nombre de lignes voulu</span>
+--disk-usage <span class="flagdtl">Affiche l'espace disque utilis&eacute; par le journal</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ sudo journalctl -u nginx -n 50
+<span class="comment"># Affiche les 50 derni&egrave;res lignes de logs du service nginx.</span>
+<span style="color: #aaa">2.</span> $ sudo journalctl -f
+<span class="comment"># Equivalent &agrave; un `tail -f` sur les logs syst&egrave;me.</span>
+<span style="color: #aaa">3.</span> $ sudo journalctl -p err -b
+<span class="comment"># Filtre les erreurs du boot en cours. Tr&egrave;s utile juste apr&egrave;s un red&eacute;marrage probl&eacute;matique.</span>
+<span style="color: #aaa">4.</span> $ sudo journalctl --since "2026-04-09 08:00" --until "2026-04-09 10:00"
+<span class="comment"># Permet de cibler une fen&ecirc;tre horaire pr&eacute;cise pendant une investigation.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://www.freedesktop.org/software/systemd/man/journalctl.html" target="_blank">[journalctl @ systemd]</a><a href="https://man7.org/linux/man-pages/man1/journalctl.1.html" target="_blank">[journalctl @ man7]</a><a href="https://www.linuxtricks.fr/wiki/systemd-utiliser-journalctl-les-logs-de-systemd" target="_blank">[journalctl @ LinuxTricks]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('pkg_admin')"><span class="name">apt / dnf</span><span class="desc">Installer, mettre &agrave; jour et rechercher des paquets.</span></div>
+        <div id="pkg_admin" class="details">
+            <div class="flags">La gestion des paquets fait partie des bases de l'administration Linux. `apt` est courant sur Debian/Ubuntu, `dnf` sur Fedora/RHEL modernes. Les r&eacute;flexes sont similaires : rechercher, installer, mettre &agrave; jour, supprimer.</div>
+			<div class="pre-container">
+			<pre>
+apt update <span class="flagdtl">Actualise l'index des paquets disponibles</span>
+apt install <span class="flagdtl">Installe un paquet</span>
+apt upgrade <span class="flagdtl">Met &agrave; jour les paquets install&eacute;s</span>
+apt remove / purge <span class="flagdtl">Supprime un paquet (purge retire aussi sa config)</span>
+apt search <span class="flagdtl">Recherche dans les d&eacute;p&ocirc;ts</span>
+dnf install <span class="flagdtl">Installe un paquet sous Fedora/RHEL</span>
+dnf upgrade <span class="flagdtl">Met &agrave; jour le syst&egrave;me</span>
+dnf info <span class="flagdtl">Affiche les d&eacute;tails d'un paquet</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ sudo apt update &amp;&amp; sudo apt upgrade
+<span class="comment"># S&eacute;quence classique sur Ubuntu/Debian : on rafra&icirc;chit l'index puis on applique les mises &agrave; jour.</span>
+<span style="color: #aaa">2.</span> $ sudo apt install curl
+<span class="comment"># Installe l'outil `curl` avec ses d&eacute;pendances.</span>
+<span style="color: #aaa">3.</span> $ apt search openssh
+<span class="comment"># Recherche les paquets dont le nom ou la description contient `openssh`.</span>
+<span style="color: #aaa">4.</span> $ sudo dnf install htop
+<span class="comment"># Equivalent Fedora/RHEL pour installer `htop`.</span>
+<span style="color: #aaa">5.</span> $ sudo apt purge apache2
+<span class="comment"># Supprime le paquet et sa configuration locale. A utiliser seulement si on veut repartir proprement.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://manpages.ubuntu.com/manpages/jammy/en/man8/apt.8.html" target="_blank">[apt @ Ubuntu]</a><a href="https://dnf.readthedocs.io/en/latest/command_ref.html" target="_blank">[dnf @ docs]</a><a href="https://www.malekal.com/commande-apt-linux/" target="_blank">[apt @ Malekal]</a>
+			</span>
+        </div></div>
+
+        <h3><span style="color: #aaa">2.</span> Archivage &amp; compression</h3>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('tar_adv')"><span class="name">tar</span><span class="desc">Cr&eacute;er, lister et extraire des archives.</span></div>
+        <div id="tar_adv" class="details">
+            <div class="flags">`tar` regroupe plusieurs fichiers dans une seule archive `.tar`. On lui ajoute souvent une compression comme gzip (`.tar.gz`) ou xz (`.tar.xz`) pour gagner de la place.</div>
+			<div class="pre-container">
+			<pre>
+-c <span class="flagdtl">Create : cr&eacute;e une archive</span>
+-x <span class="flagdtl">Extract : extrait une archive</span>
+-t <span class="flagdtl">List : liste le contenu sans extraction</span>
+-f <span class="flagdtl">Pr&eacute;cise le nom du fichier archive</span>
+-z <span class="flagdtl">Active la compression gzip</span>
+-J <span class="flagdtl">Active la compression xz</span>
+-C <span class="flagdtl">Extrait ou archive depuis un dossier cible</span>
+--exclude <span class="flagdtl">Ignore certains chemins</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ tar -cvf archive.tar dossier/
+<span class="comment"># Archive simple, sans compression. Rapide mais peu &eacute;conome en espace.</span>
+<span style="color: #aaa">2.</span> $ tar -czvf backup.tar.gz /etc /var/www
+<span class="comment"># Format tr&egrave;s courant pour une sauvegarde de configuration et de site web.</span>
+<span style="color: #aaa">3.</span> $ tar -xvf archive.tar -C /tmp/restore
+<span class="comment"># Extrait l'archive dans un dossier pr&eacute;cis plut&ocirc;t que dans le r&eacute;pertoire courant.</span>
+<span style="color: #aaa">4.</span> $ tar -tf backup.tar.gz
+<span class="comment"># V&eacute;rifie le contenu d'une archive avant extraction.</span>
+<span style="color: #aaa">5.</span> $ tar -czvf logs.tar.gz /var/log --exclude='*.gz'
+<span class="comment"># Archive les logs non d&eacute;j&agrave; compress&eacute;s pour &eacute;viter les doublons.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://www.gnu.org/software/tar/manual/" target="_blank">[tar @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/tar.1.html" target="_blank">[tar @ man7]</a><a href="https://www.linuxtricks.fr/wiki/tar-gestion-des-archives-sous-linux" target="_blank">[tar @ LinuxTricks]</a><a href="https://www.malekal.com/tar-gzip-bzip-rar-zip-7zip-la-compression-decompression-de-fichiers-sur-linux/" target="_blank">[tar/zip/gzip @ Malekal]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('zip_gzip')"><span class="name">zip / gzip</span><span class="desc">Compression rapide et formats courants.</span></div>
+        <div id="zip_gzip" class="details">
+            <div class="flags">`zip` est tr&egrave;s pratique pour &eacute;changer des fichiers avec Windows. `gzip` compresse un fichier unique, souvent des logs ou des exports, et s'int&egrave;gre tr&egrave;s bien avec `tar`.</div>
+			<div class="pre-container">
+			<pre>
+zip -r <span class="flagdtl">Compresse r&eacute;cursivement un dossier</span>
+zip -e <span class="flagdtl">Ajoute un mot de passe &agrave; l'archive ZIP</span>
+unzip <span class="flagdtl">Extrait une archive ZIP</span>
+gzip <span class="flagdtl">Compresse un fichier en `.gz`</span>
+gunzip <span class="flagdtl">D&eacute;compresse un fichier `.gz`</span>
+zcat <span class="flagdtl">Affiche le contenu d'un `.gz` sans le d&eacute;compresser</span>
+gzip -k <span class="flagdtl">Conserve le fichier source en plus du `.gz`</span>
+gzip -d <span class="flagdtl">Equivalent &agrave; `gunzip`</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ zip -r archive.zip projet/
+<span class="comment"># Cr&eacute;e une archive ZIP compl&egrave;te d'un dossier avec son arborescence.</span>
+<span style="color: #aaa">2.</span> $ unzip archive.zip -d /tmp/projet
+<span class="comment"># Extrait dans un dossier de destination pr&eacute;cis.</span>
+<span style="color: #aaa">3.</span> $ gzip access.log
+<span class="comment"># Remplace `access.log` par `access.log.gz` pour &eacute;conomiser de l'espace.</span>
+<span style="color: #aaa">4.</span> $ zcat access.log.gz | grep 500
+<span class="comment"># Recherche les erreurs HTTP 500 dans un log compress&eacute; sans le restaurer sur disque.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://www.gnu.org/software/gzip/manual/gzip.html" target="_blank">[gzip @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/zip.1.html" target="_blank">[zip @ man7]</a><a href="https://www.malekal.com/tar-gzip-bzip-rar-zip-7zip-la-compression-decompression-de-fichiers-sur-linux/" target="_blank">[compression @ Malekal]</a>
+			</span>
+        </div></div>
+
+        <h3><span style="color: #aaa">3.</span> Disques, t&acirc;ches planifi&eacute;es et utilitaires d'admin</h3>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('mount_umount')"><span class="name">mount / umount</span><span class="desc">Monter et d&eacute;monter des syst&egrave;mes de fichiers.</span></div>
+        <div id="mount_umount" class="details">
+            <div class="flags">Un disque, une partition ou une image ISO devient accessible en l'attachant &agrave; un point de montage. Le r&eacute;flexe s&eacute;curit&eacute; : toujours `umount` avant de d&eacute;brancher un support.</div>
+			<div class="pre-container">
+			<pre>
+mount <span class="flagdtl">Affiche les montages actifs</span>
+-t <span class="flagdtl">Sp&eacute;cifie le type de syst&egrave;me de fichiers</span>
+-o <span class="flagdtl">Passe des options (ro, rw, loop, noexec...)</span>
+umount <span class="flagdtl">D&eacute;monte un syst&egrave;me de fichiers</span>
+lsblk <span class="flagdtl">Liste les disques et points de montage</span>
+blkid <span class="flagdtl">Affiche UUID et type de filesystem</span>
+mount -a <span class="flagdtl">Monte tout ce qui est d&eacute;clar&eacute; dans `/etc/fstab`</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ lsblk
+<span class="comment"># Identifie les disques, partitions et points de montage existants avant toute action.</span>
+<span style="color: #aaa">2.</span> $ sudo mount /dev/sdb1 /mnt/usb
+<span class="comment"># Monte la partition `sdb1` dans le dossier `/mnt/usb`.</span>
+<span style="color: #aaa">3.</span> $ sudo mount -o loop image.iso /mnt/iso
+<span class="comment"># Monte un fichier ISO comme un vrai disque pour consulter son contenu.</span>
+<span style="color: #aaa">4.</span> $ sudo umount /mnt/usb
+<span class="comment"># D&eacute;monte proprement le support. Si &ccedil;a refuse, v&eacute;rifier qu'aucun shell ou processus ne l'utilise.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://man7.org/linux/man-pages/man8/mount.8.html" target="_blank">[mount @ man7]</a><a href="https://man7.org/linux/man-pages/man8/umount.8.html" target="_blank">[umount @ man7]</a><a href="https://www.malekal.com/mount-umount-monter-demonter-partition-disque-linux/" target="_blank">[mount/umount @ Malekal]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('dd_adv')"><span class="name">dd</span><span class="desc">Copie bit &agrave; bit et conversion bas niveau.</span></div>
+        <div id="dd_adv" class="details">
+            <div class="flags">`dd` copie les donn&eacute;es de mani&egrave;re brute. Extr&ecirc;mement puissant, mais dangereux : inverser `if` et `of` peut d&eacute;truire un disque entier. Toujours relire la commande avant validation.</div>
+			<div class="pre-container">
+			<pre>
+if= <span class="flagdtl">Input file : source</span>
+of= <span class="flagdtl">Output file : destination</span>
+bs= <span class="flagdtl">Taille des blocs copi&eacute;s</span>
+count= <span class="flagdtl">Nombre de blocs &agrave; copier</span>
+status=progress <span class="flagdtl">Affiche l'avancement</span>
+conv=fsync <span class="flagdtl">Force l'&eacute;criture physique avant fin</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ sudo dd if=ubuntu.iso of=/dev/sdc bs=4M status=progress conv=fsync
+<span class="comment"># Cr&eacute;e une cl&eacute; USB bootable &agrave; partir d'une image ISO.</span>
+<span style="color: #aaa">2.</span> $ sudo dd if=/dev/sda of=/backup/disque.img bs=64K status=progress
+<span class="comment"># Clone brut d'un disque entier vers un fichier image.</span>
+<span style="color: #aaa">3.</span> $ sudo dd if=/dev/zero of=test.bin bs=1M count=100
+<span class="comment"># G&eacute;n&egrave;re un fichier de test de 100 Mo, utile pour des essais de stockage.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://www.gnu.org/software/coreutils/manual/html_node/dd-invocation.html" target="_blank">[dd @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/dd.1.html" target="_blank">[dd @ man7]</a><a href="https://www.malekal.com/commande-dd-linux/" target="_blank">[dd @ Malekal]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('cron_adv')"><span class="name">crontab</span><span class="desc">Planifier des t&acirc;ches automatiques.</span></div>
+        <div id="cron_adv" class="details">
+            <div class="flags">`cron` ex&eacute;cute des commandes &agrave; heure fixe ou &agrave; intervalle r&eacute;gulier. Bon r&eacute;flexe : toujours utiliser des chemins absolus dans les scripts cron, car l'environnement est minimal.</div>
+			<div class="pre-container">
+			<pre>
+-e <span class="flagdtl">Edite la crontab de l'utilisateur courant</span>
+-l <span class="flagdtl">Liste les t&acirc;ches planifi&eacute;es</span>
+-r <span class="flagdtl">Supprime la crontab courante</span>
+-u <span class="flagdtl">Cible un autre utilisateur (avec sudo/root)</span>
+* * * * * <span class="flagdtl">Format minute heure jour mois jour-semaine</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ crontab -e
+<span class="comment"># Ouvre l'&eacute;diteur pour ajouter ou modifier vos t&acirc;ches planifi&eacute;es.</span>
+<span style="color: #aaa">2.</span> $ crontab -l
+<span class="comment"># Permet de v&eacute;rifier rapidement ce qui est d&eacute;j&agrave; programm&eacute;.</span>
+<span style="color: #aaa">3.</span> 0 4 * * * /home/user/backup.sh
+<span class="comment"># Lance le script tous les jours &agrave; 04:00.</span>
+<span style="color: #aaa">4.</span> */5 * * * * /usr/bin/curl -fsS http://localhost/health
+<span class="comment"># Ex&eacute;cute un contr&ocirc;le toutes les 5 minutes.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://man7.org/linux/man-pages/man1/crontab.1.html" target="_blank">[crontab @ man7]</a><a href="https://man7.org/linux/man-pages/man5/crontab.5.html" target="_blank">[format crontab @ man7]</a><a href="https://www.linuxtricks.fr/wiki/cron-et-crontab-le-planificateur-de-taches" target="_blank">[cron/crontab @ LinuxTricks]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('host_time_admin')"><span class="name">hostnamectl / timedatectl</span><span class="desc">G&eacute;rer l'identit&eacute; de la machine, l'heure et le fuseau.</span></div>
+        <div id="host_time_admin" class="details">
+            <div class="flags">Ces deux commandes systemd sont tr&egrave;s pratiques en administration courante. `hostnamectl` g&egrave;re le nom de la machine, tandis que `timedatectl` permet de v&eacute;rifier ou corriger l'heure, la timezone et l'activation de la synchronisation NTP.</div>
+			<div class="pre-container">
+			<pre>
+hostnamectl <span class="flagdtl">Affiche le nom d'h&ocirc;te, l'OS, le noyau et l'architecture</span>
+hostnamectl set-hostname <span class="flagdtl">D&eacute;finit un nouveau nom de machine</span>
+timedatectl <span class="flagdtl">Montre l'heure locale, UTC, timezone et l'&eacute;tat NTP</span>
+timedatectl list-timezones <span class="flagdtl">Liste les fuseaux disponibles</span>
+timedatectl set-timezone <span class="flagdtl">Change le fuseau horaire</span>
+timedatectl set-ntp true <span class="flagdtl">Active la synchro automatique de l'heure</span>
+			</pre>
+			<pre>
+<span style="color: #aaa">1.</span> $ hostnamectl
+<span class="comment"># Donne rapidement l'identit&eacute; du syst&egrave;me et quelques infos utiles de diagnostic.</span>
+<span style="color: #aaa">2.</span> $ sudo hostnamectl set-hostname srv-web-01
+<span class="comment"># Renomme proprement la machine avec un nom plus explicite.</span>
+<span style="color: #aaa">3.</span> $ timedatectl
+<span class="comment"># V&eacute;rifie si l'heure et le fuseau sont corrects, ce qui est crucial pour les logs et certificats.</span>
+<span style="color: #aaa">4.</span> $ sudo timedatectl set-timezone Europe/Paris
+<span class="comment"># Change le fuseau horaire du serveur.</span>
+<span style="color: #aaa">5.</span> $ sudo timedatectl set-ntp true
+<span class="comment"># Active la synchronisation automatique pour &eacute;viter la d&eacute;rive de l'horloge syst&egrave;me.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://www.freedesktop.org/software/systemd/man/hostnamectl.html" target="_blank">[hostnamectl @ systemd]</a><a href="https://www.freedesktop.org/software/systemd/man/timedatectl.html" target="_blank">[timedatectl @ systemd]</a><a href="https://man7.org/linux/man-pages/man1/hostnamectl.1.html" target="_blank">[hostnamectl @ man7]</a><a href="https://man7.org/linux/man-pages/man1/timedatectl.1.html" target="_blank">[timedatectl @ man7]</a><a href="https://www.it-connect.fr/gerer-lheure-et-la-date-sous-linux-avec-timedatectl/" target="_blank">[timedatectl @ IT-Connect]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('process')"><span class="name">nohup / &amp;</span><span class="desc">Lancer un processus persistant en arri&egrave;re-plan.</span></div>
+        <div id="process" class="details">
+		<div class="flags">Quand un terminal se ferme, ses processus enfants re&ccedil;oivent souvent un signal de fin. `nohup` permet de les laisser tourner. En compl&eacute;ment, `&amp;`, `jobs`, `bg` et `fg` aident &agrave; g&eacute;rer les processus du shell.</div>
+			<div class="pre-container">
+			<pre>
+nohup <span class="flagdtl">Ignore le signal HUP envoy&eacute; &agrave; la fermeture du terminal</span>
+&amp; <span class="flagdtl">Lance la commande en arri&egrave;re-plan</span>
+jobs <span class="flagdtl">Liste les t&acirc;ches du shell courant</span>
+bg <span class="flagdtl">Reprend une t&acirc;che suspendue en arri&egrave;re-plan</span>
+fg <span class="flagdtl">Ram&egrave;ne une t&acirc;che au premier plan</span>
+			</pre>
+			<pre>
+<span style="color: #aaa">1.</span> $ nohup ./script.sh &amp;
+<span class="comment"># Lance le script en fond et le laisse tourner m&ecirc;me apr&egrave;s la fermeture de la session.</span>
+<span style="color: #aaa">2.</span> $ nohup python3 -m http.server 8080 &gt; server.log 2&gt;&amp;1 &amp;
+<span class="comment"># Exemple classique : on redirige la sortie dans un fichier plut&ocirc;t que `nohup.out`.</span>
+<span style="color: #aaa">3.</span> $ jobs
+<span class="comment"># Affiche les commandes d&eacute;j&agrave; lanc&eacute;es depuis le shell courant.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://www.gnu.org/software/coreutils/manual/html_node/nohup-invocation.html" target="_blank">[nohup @ GNU]</a><a href="https://man7.org/linux/man-pages/man1/nohup.1.html" target="_blank">[nohup @ man7]</a><a href="https://www.malekal.com/commande-nohup-linux/" target="_blank">[nohup @ Malekal]</a>
+			</span>
+</div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('disk_admin')"><span class="name">mkfs</span><span class="desc">Formater une partition avec un syst&egrave;me de fichiers.</span></div>
+        <div id="disk_admin" class="details">
+<div class="flags">`mkfs` construit un syst&egrave;me de fichiers neuf sur une partition. C'est une action destructive : toutes les donn&eacute;es pr&eacute;sentes sur la cible seront perdues. Bien v&eacute;rifier le nom du p&eacute;riph&eacute;rique avec `lsblk` avant de lancer la commande.</div>
+			<div class="pre-container">
+			<pre>
+mkfs.ext4 <span class="flagdtl">Cr&eacute;e un filesystem ext4</span>
+mkfs.xfs <span class="flagdtl">Cr&eacute;e un filesystem XFS</span>
+mkfs.vfat <span class="flagdtl">Cr&eacute;e un filesystem FAT32</span>
+-L <span class="flagdtl">D&eacute;finit un label lisible</span>
+-n <span class="flagdtl">Label (selon l'outil, ex. vfat)</span>
+blkid <span class="flagdtl">V&eacute;rifie ensuite le type et l'UUID obtenus</span>
+			</pre>
+			<pre>
+<span style="color: #aaa">1.</span> $ lsblk
+<span class="comment"># Toujours identifier la bonne partition avant un formatage.</span>
+<span style="color: #aaa">2.</span> $ sudo mkfs.ext4 -L DATA /dev/sdb1
+<span class="comment"># Formate `/dev/sdb1` en ext4 et lui attribue le label `DATA`.</span>
+<span style="color: #aaa">3.</span> $ sudo mkfs.vfat -n USB32 /dev/sdc1
+<span class="comment"># Formate une cl&eacute; USB en FAT32, pratique pour l'&eacute;change avec plusieurs OS.</span>
+<span style="color: #aaa">4.</span> $ sudo blkid /dev/sdb1
+<span class="comment"># Contr&ocirc;le final : type de filesystem, UUID et label.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://man7.org/linux/man-pages/man8/mkfs.8.html" target="_blank">[mkfs @ man7]</a><a href="https://man7.org/linux/man-pages/man8/mkfs.ext4.8.html" target="_blank">[mkfs.ext4 @ man7]</a><a href="https://www.malekal.com/mkfs-creer-systeme-de-fichiers-linux/" target="_blank">[mkfs @ Malekal]</a>
+			</span>
+</div></div>
+    </section>
+
+    <section class="cat" id="netadmin">
+        <h2>Network Administration</h2>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('ssh_adv')"><span class="name">ssh</span><span class="desc">Connexion distante s&eacute;curis&eacute;e &agrave; une machine Linux.</span></div>
+        <div id="ssh_adv" class="details">
+            <div class="flags">`ssh` est la base de l'administration &agrave; distance. Il chiffre la session, permet l'authentification par mot de passe ou cl&eacute; publique, et peut aussi rediriger des ports.</div>
+            <div class="pre-container">
+			<pre>
+-p <span class="flagdtl">Port SSH &agrave; utiliser</span>
+-i <span class="flagdtl">Cl&eacute; priv&eacute;e &agrave; employer</span>
+-L <span class="flagdtl">Redirection locale de port</span>
+-J <span class="flagdtl">Passe par un bastion / jump host</span>
+-v <span class="flagdtl">Mode verbeux pour le debug</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ ssh user@192.168.1.20
+<span class="comment"># Ouvre une session distante sur la machine cible.</span>
+<span style="color: #aaa">2.</span> $ ssh -i ~/.ssh/id_ed25519 admin@serveur
+<span class="comment"># Force l'utilisation d'une cl&eacute; priv&eacute;e sp&eacute;cifique.</span>
+<span style="color: #aaa">3.</span> $ ssh -L 8080:127.0.0.1:80 user@serveur
+<span class="comment"># Le port local 8080 est reli&eacute; au port 80 du serveur distant via un tunnel chiffr&eacute;.</span>
+<span style="color: #aaa">4.</span> $ ssh -v user@serveur
+<span class="comment"># Mode debug pratique si la connexion &eacute;choue (cl&eacute;, DNS, refus, algo, etc.).</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://man7.org/linux/man-pages/man1/ssh.1.html" target="_blank">[ssh @ man7]</a><a href="https://www.openssh.com/manual.html" target="_blank">[OpenSSH manuals]</a><a href="https://www.malekal.com/ssh-linux/" target="_blank">[ssh @ Malekal]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('scp_rsync')"><span class="name">scp / rsync</span><span class="desc">Copier ou synchroniser des fichiers &agrave; distance.</span></div>
+        <div id="scp_rsync" class="details">
+            <div class="flags">`scp` est simple et rapide pour une copie ponctuelle. `rsync` est meilleur pour les synchronisations r&eacute;p&eacute;t&eacute;es, les gros volumes et les reprises partielles.</div>
+            <div class="pre-container">
+			<pre>
+scp -r <span class="flagdtl">Copie r&eacute;cursive d'un dossier</span>
+scp -P <span class="flagdtl">Port SSH personnalis&eacute;</span>
+rsync -a <span class="flagdtl">Mode archive (permissions, dates, liens...)</span>
+rsync -v <span class="flagdtl">Affiche le d&eacute;tail des transferts</span>
+rsync -z <span class="flagdtl">Compresse pendant le transfert</span>
+rsync --delete <span class="flagdtl">Supprime la destination absente &agrave; la source</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ scp fichier.txt user@serveur:/tmp/
+<span class="comment"># Copie un fichier local vers le serveur distant.</span>
+<span style="color: #aaa">2.</span> $ scp -r ./site user@serveur:/var/www/
+<span class="comment"># Copie un dossier complet via SSH.</span>
+<span style="color: #aaa">3.</span> $ rsync -avz ./backup/ user@serveur:/srv/backup/
+<span class="comment"># Synchronisation efficace en pr&eacute;servant les droits et les dates.</span>
+<span style="color: #aaa">4.</span> $ rsync -av --delete ./public/ user@serveur:/var/www/html/
+<span class="comment"># Rend la destination identique &agrave; la source. A manipuler avec prudence &agrave; cause de `--delete`.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://man7.org/linux/man-pages/man1/scp.1.html" target="_blank">[scp @ man7]</a><a href="https://download.samba.org/pub/rsync/rsync.1" target="_blank">[rsync manual]</a><a href="https://www.it-connect.fr/transferer-fichiers-linux-scp-exemples-commandes/" target="_blank">[scp @ IT-Connect]</a><a href="https://www.it-connect.fr/maitriser-rsync-sous-linux-le-guide-complet-de-la-synchronisation-de-donnees/" target="_blank">[rsync @ IT-Connect]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('curl_wget')"><span class="name">curl / wget</span><span class="desc">Tester une URL, t&eacute;l&eacute;charger un fichier ou interroger une API.</span></div>
+        <div id="curl_wget" class="details">
+            <div class="flags">`curl` est id&eacute;al pour les tests HTTP, les API REST et les en-t&ecirc;tes de r&eacute;ponse. `wget` est pratique pour les t&eacute;l&eacute;chargements simples ou r&eacute;cursifs.</div>
+            <div class="pre-container">
+			<pre>
+curl -I <span class="flagdtl">R&eacute;cup&egrave;re uniquement les en-t&ecirc;tes HTTP</span>
+curl -O <span class="flagdtl">Enregistre sous le nom distant</span>
+curl -L <span class="flagdtl">Suit les redirections</span>
+curl -X <span class="flagdtl">Sp&eacute;cifie la m&eacute;thode HTTP</span>
+curl -H <span class="flagdtl">Ajoute un en-t&ecirc;te</span>
+wget -O <span class="flagdtl">Choisit le nom du fichier de sortie</span>
+wget -c <span class="flagdtl">Reprend un t&eacute;l&eacute;chargement interrompu</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ curl -I https://example.com
+<span class="comment"># V&eacute;rifie le code HTTP, le type MIME, le serveur, la longueur, etc.</span>
+<span style="color: #aaa">2.</span> $ curl -L -O https://example.com/archive.tar.gz
+<span class="comment"># T&eacute;l&eacute;charge un fichier en suivant les redirections.</span>
+<span style="color: #aaa">3.</span> $ curl -X POST -H "Content-Type: application/json" -d '{"ok":true}' https://api.example.com/test
+<span class="comment"># Exemple d'appel API REST avec payload JSON.</span>
+<span style="color: #aaa">4.</span> $ wget -c https://releases.example.com/big.iso
+<span class="comment"># Reprend le t&eacute;l&eacute;chargement si la connexion a &eacute;t&eacute; interrompue.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://curl.se/docs/manpage.html" target="_blank">[curl manual]</a><a href="https://www.gnu.org/software/wget/manual/wget.html" target="_blank">[wget @ GNU]</a><a href="https://www.malekal.com/commande-curl-linux/" target="_blank">[curl @ Malekal]</a><a href="https://www.malekal.com/commande-wget-linux/" target="_blank">[wget @ Malekal]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('trace_dns')"><span class="name">traceroute / tracepath / mtr</span><span class="desc">Analyser le chemin r&eacute;seau et rep&eacute;rer o&ugrave; la connectivit&eacute; se d&eacute;grade.</span></div>
+        <div id="trace_dns" class="details">
+            <div class="flags">Quand `ping` montre une latence anormale ou qu'un acc&egrave;s distant ne r&eacute;pond pas, ces outils aident &agrave; comprendre o&ugrave; le trafic bloque. `traceroute` et `tracepath` suivent les sauts, `mtr` combine ping et traceroute dans un mode interactif tr&egrave;s parlant.</div>
+            <div class="pre-container">
+			<pre>
+traceroute <span class="flagdtl">Affiche les routeurs travers&eacute;s jusqu'&agrave; la cible</span>
+traceroute -n <span class="flagdtl">D&eacute;sactive la r&eacute;solution DNS pour aller plus vite</span>
+tracepath <span class="flagdtl">Alternative souvent pr&eacute;sente sans privil&egrave;ges root</span>
+mtr <span class="flagdtl">Mesure en continu perte et latence par saut</span>
+mtr -rw <span class="flagdtl">Produit un rapport texte lisible pour diagnostic</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ traceroute example.com
+<span class="comment"># Montre les diff&eacute;rents sauts entre votre machine et la destination.</span>
+<span style="color: #aaa">2.</span> $ traceroute -n 8.8.8.8
+<span class="comment"># Plus rapide pour un test brut car on &eacute;vite la r&eacute;solution des noms d'h&ocirc;tes interm&eacute;diaires.</span>
+<span style="color: #aaa">3.</span> $ tracepath 1.1.1.1
+<span class="comment"># Alternative simple pour observer le chemin sans options complexes.</span>
+<span style="color: #aaa">4.</span> $ mtr -rw google.com
+<span class="comment"># Produit un mini rapport avec perte de paquets et latence par hop, tr&egrave;s utile en support r&eacute;seau.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://man7.org/linux/man-pages/man8/traceroute.8.html" target="_blank">[traceroute @ man7]</a><a href="https://man7.org/linux/man-pages/man8/tracepath.8.html" target="_blank">[tracepath @ man7]</a><a href="https://www.mankier.com/8/mtr" target="_blank">[mtr @ mankier]</a><a href="https://www.it-connect.fr/traceroute-sous-linux-analyser-le-chemin-pris-par-les-paquets/" target="_blank">[traceroute @ IT-Connect]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('dns_tools')"><span class="name">host / nslookup</span><span class="desc">V&eacute;rifier rapidement la r&eacute;solution DNS d'un nom ou d'un enregistrement.</span></div>
+        <div id="dns_tools" class="details">
+            <div class="flags">Pour les probl&egrave;mes de connectivit&eacute;, il faut souvent distinguer une panne r&eacute;seau d'un simple souci DNS. `host` est compact et lisible, `nslookup` reste encore tr&egrave;s courant dans les tutos et environnements mixtes.</div>
+            <div class="pre-container">
+			<pre>
+host <span class="flagdtl">R&eacute;sout un nom de domaine simplement</span>
+host -t MX <span class="flagdtl">Interroge un type d'enregistrement pr&eacute;cis</span>
+host -t NS <span class="flagdtl">Liste les serveurs DNS autoritaires</span>
+nslookup <span class="flagdtl">Outil de requ&ecirc;te DNS interactif ou direct</span>
+nslookup domain server <span class="flagdtl">Interroge un serveur DNS donn&eacute;</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ host example.com
+<span class="comment"># Donne l'adresse IP associ&eacute;e au domaine.</span>
+<span style="color: #aaa">2.</span> $ host -t MX gmail.com
+<span class="comment"># Affiche les serveurs de messagerie d'un domaine.</span>
+<span style="color: #aaa">3.</span> $ host -t NS example.com
+<span class="comment"># Montre quels serveurs sont autoritaires pour la zone DNS.</span>
+<span style="color: #aaa">4.</span> $ nslookup example.com 1.1.1.1
+<span class="comment"># Permet de comparer la r&eacute;ponse d'un r&eacute;solveur public avec celle du r&eacute;seau local.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://man7.org/linux/man-pages/man1/host.1.html" target="_blank">[host @ man7]</a><a href="https://man7.org/linux/man-pages/man1/nslookup.1.html" target="_blank">[nslookup @ man7]</a><a href="https://www.malekal.com/commande-host-linux/" target="_blank">[host @ Malekal]</a><a href="https://www.malekal.com/nslookup-interroger-le-dns-en-ligne-de-commandes/" target="_blank">[nslookup @ Malekal]</a>
+			</span>
+        </div></div>
+
+        <div class="cmd-box"><div class="summary" onclick="toggle('nmap_adv')"><span class="name">nmap</span><span class="desc">Scanner des ports et inventorier les services expos&eacute;s.</span></div>
+        <div id="nmap_adv" class="details">
+            <div class="flags">`nmap` est un outil de diagnostic et d'inventaire r&eacute;seau tr&egrave;s puissant. Il permet de voir quels ports sont ouverts, quels services r&eacute;pondent et parfois leur version. A utiliser uniquement sur les machines et r&eacute;seaux autoris&eacute;s.</div>
+            <div class="pre-container">
+			<pre>
+-p <span class="flagdtl">Scanne un ou plusieurs ports pr&eacute;cis</span>
+-sV <span class="flagdtl">Tente d'identifier les versions de services</span>
+-O <span class="flagdtl">Essaye de deviner l'OS</span>
+-Pn <span class="flagdtl">Ignore l'&eacute;tape de ping initiale</span>
+-A <span class="flagdtl">Scan agressif : scripts, versions, OS, traceroute</span>
+			</pre>
+            <pre>
+<span style="color: #aaa">1.</span> $ nmap 192.168.1.10
+<span class="comment"># Scan de base des ports les plus courants.</span>
+<span style="color: #aaa">2.</span> $ nmap -p 22,80,443 192.168.1.10
+<span class="comment"># V&eacute;rifie rapidement quelques ports d'int&eacute;r&ecirc;t.</span>
+<span style="color: #aaa">3.</span> $ sudo nmap -sV 192.168.1.10
+<span class="comment"># Essaie d'identifier les services et leurs versions.</span>
+<span style="color: #aaa">4.</span> $ sudo nmap -A 192.168.1.10
+<span class="comment"># Analyse plus pouss&eacute;e, utile pour un audit interne ou un lab.</span></pre>
+		</div>
+			<span class="manref">R&eacute;f&eacute;rences : <a href="https://nmap.org/book/man.html" target="_blank">[nmap guide]</a><a href="https://www.it-connect.fr/nmap-cartographier-son-reseau-et-auditer-la-securite/" target="_blank">[nmap @ IT-Connect]</a>
+			</span>
+        </div></div>
+    </section>
+
+</div>
+<section class="cat" id="links">
+	<a href="https://blog.stephane-robert.info/docs/admin-serveurs/linux/shells-linux/">[ Blog Steph-Robert ]</a><a href="https://www.linuxtricks.fr/wiki/generalites-systeme-linux">[ LinuxTricks (fr) ]</a><a href="https://debian-handbook.info/browse/fr-FR/stable/index.html">[ Debian Hanbook (fr)] </a><a href="https://www.malekal.com/liste-des-commandes-linux/">[ Malekal (fr) ]</a>
+</section>
+<script>
+    function toggle(id){
+        let el = document.getElementById(id);
+        el.style.display = (el.style.display === "block") ? "none" : "block";
+    }
+    function search(){
+        let q = document.getElementById('search').value.toLowerCase();
+        document.querySelectorAll('.cmd-box').forEach(box => {
+            box.style.display = box.innerText.toLowerCase().includes(q) ? 'block' : 'none';
+        });
+        document.querySelectorAll('.cat').forEach(cat => {
+            let vis = Array.from(cat.querySelectorAll('.cmd-box')).some(b => b.style.display !== 'none');
+            cat.style.display = vis ? 'block' : 'none';
+        });
+    }
+</script>
+</body>
+</html>
+
