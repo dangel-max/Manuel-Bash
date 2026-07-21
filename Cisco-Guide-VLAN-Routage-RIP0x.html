@@ -15,6 +15,17 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
+  function makeSelect(label, options, cls="") {
+    return `
+      <label class="cfgLabel">
+        <span>${label}</span>
+        <select class="${cls}">
+          ${options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join("")}
+        </select>
+      </label>
+    `;
+  }
+
   function renderVlanBuilder(box) {
     box.innerHTML = `
       <div class="cfgPanel">
@@ -124,6 +135,461 @@ document.addEventListener("DOMContentLoaded", () => {
     drawRows();
   }
 
+  function renderTrunkBuilder(box) {
+    box.innerHTML = `
+      <div class="cfgPanel">
+        <div class="cfgRow">
+          ${makeInput("Trunk Interface", "fa0/24", "trunkIf")}
+          ${makeInput("Allowed VLANs", "10,20,30", "trunkVlans")}
+        </div>
+      </div>
+    `;
+
+    const ifInput = box.querySelector(".trunkIf");
+    const vlanInput = box.querySelector(".trunkVlans");
+
+    function updateOutput() {
+      const ifName = ifInput.value.trim();
+      const vlans = vlanInput.value.trim();
+
+      box.parentElement.querySelector("pre").textContent =
+`configure terminal
+interface ${ifName}
+ switchport mode trunk
+ switchport trunk allowed vlan ${vlans}
+end
+write memory`;
+    }
+
+    ifInput.addEventListener("input", updateOutput);
+    vlanInput.addEventListener("input", updateOutput);
+    updateOutput();
+  }
+
+  function renderSubifBuilder(box) {
+    const defaultParent = box.dataset.parentIf || "g0/0";
+    const defaultCount = box.dataset.count || "3";
+    const defaultVlans = (box.dataset.vlans || "10,20,30").split(",").map(v => v.trim()).filter(Boolean);
+    const defaultIps = (box.dataset.ips || "").split(",").map(v => v.trim());
+    const defaultMasks = (box.dataset.masks || "").split(",").map(v => v.trim());
+
+    box.innerHTML = `
+      <div class="cfgPanel">
+        <div class="cfgRow">
+          ${makeInput("Interface physique", defaultParent, "parentIf")}
+          ${makeInput("Nb sous-interfaces", defaultCount, "subifCount")}
+        </div>
+        <div class="subifRows"></div>
+      </div>
+    `;
+
+    const parentIfInput = box.querySelector(".parentIf");
+    const countInput = box.querySelector(".subifCount");
+    const rows = box.querySelector(".subifRows");
+
+    function drawRows() {
+      rows.innerHTML = "";
+      const n = parseInt(countInput.value, 10) || 0;
+
+      for (let i = 0; i < n; i++) {
+        const vlan = defaultVlans[i] || String((i + 1) * 10);
+        const ip = defaultIps[i] || `192.168.${vlan}.1`;
+        const mask = defaultMasks[i] || "255.255.255.0";
+
+        rows.innerHTML += `
+          <div class="cfgRow cfgRow3">
+            ${makeInput("VLAN", vlan, "subVlan")}
+            ${makeInput("IPv4", ip, "subIp")}
+            ${makeInput("Masque", mask, "subMask")}
+          </div>
+        `;
+      }
+
+      rows.querySelectorAll("input").forEach(el => {
+        el.addEventListener("input", updateOutput);
+      });
+
+      updateOutput();
+    }
+
+    function updateOutput() {
+      const parentIf = parentIfInput.value.trim();
+      const vlans = [...rows.querySelectorAll(".subVlan")];
+      const ips = [...rows.querySelectorAll(".subIp")];
+      const masks = [...rows.querySelectorAll(".subMask")];
+
+      let txt = "enable\nconfigure terminal\n";
+      txt += `interface ${parentIf}\n`;
+      txt += " no shutdown\n";
+
+      vlans.forEach((vlanInput, i) => {
+        const vlan = vlanInput.value.trim();
+        const ip = ips[i].value.trim();
+        const mask = normalizeMaskInput(masks[i].value.trim());
+
+        txt += `interface ${parentIf}.${vlan}\n`;
+        txt += ` encapsulation dot1q ${vlan}\n`;
+        txt += ` ip address ${ip} ${mask}\n`;
+      });
+
+      txt += "end\nwrite memory";
+      box.parentElement.querySelector("pre").textContent = txt;
+    }
+
+    parentIfInput.addEventListener("input", updateOutput);
+    countInput.addEventListener("input", drawRows);
+    drawRows();
+  }
+
+  function maskToCidr(mask) {
+    const octets = mask.split(".").map(v => Number(v));
+    if (octets.length !== 4 || octets.some(v => Number.isNaN(v) || v < 0 || v > 255)) return "";
+
+    let bits = "";
+    octets.forEach(v => {
+      bits += v.toString(2).padStart(8, "0");
+    });
+
+    const firstZero = bits.indexOf("0");
+    if (firstZero === -1) return "/32";
+    if (bits.slice(firstZero).includes("1")) return "";
+    return `/${firstZero}`;
+  }
+
+  function cidrToMask(cidr) {
+    const raw = String(cidr).trim().replace(/^\//, "");
+    if (!/^\d{1,2}$/.test(raw)) return "";
+
+    const n = Number(raw);
+    if (n < 0 || n > 32) return "";
+
+    const bits = "1".repeat(n).padEnd(32, "0");
+    const octets = [
+      parseInt(bits.slice(0, 8), 2),
+      parseInt(bits.slice(8, 16), 2),
+      parseInt(bits.slice(16, 24), 2),
+      parseInt(bits.slice(24, 32), 2)
+    ];
+    return octets.join(".");
+  }
+
+  function normalizeMaskInput(value) {
+    const raw = String(value).trim();
+    if (!raw) return "";
+
+    const fromCidr = cidrToMask(raw);
+    if (fromCidr) return fromCidr;
+
+    return maskToCidr(raw) ? raw : raw;
+  }
+
+  function maskInputToCidr(value) {
+    const raw = String(value).trim();
+    if (!raw) return "";
+
+    const normalized = normalizeMaskInput(raw);
+    return maskToCidr(normalized);
+  }
+
+  function renderWanLinkBuilder(box) {
+    const r1If = box.dataset.r1If || "g0/1";
+    const r1Ip = box.dataset.r1Ip || "10.0.0.1";
+    const r1Mask = box.dataset.r1Mask || "255.255.255.252";
+    const r2If = box.dataset.r2If || "g0/1";
+    const r2Ip = box.dataset.r2Ip || "10.0.0.2";
+    const r2Mask = box.dataset.r2Mask || "255.255.255.252";
+
+    box.innerHTML = `
+      <div class="cfgPanel">
+        <div class="cfgSectionTitle">Routeur 1</div>
+        <div class="cfgRow cfgRow4">
+          ${makeInput("Interface", r1If, "r1If")}
+          ${makeInput("IPv4", r1Ip, "r1Ip")}
+          ${makeInput("Masque", r1Mask, "r1Mask")}
+          <label class="cfgLabel"><span>CIDR</span><input type="text" class="r1Cidr" readonly></label>
+        </div>
+        <div class="cfgSectionTitle">Routeur 2</div>
+        <div class="cfgRow cfgRow4">
+          ${makeInput("Interface", r2If, "r2If")}
+          ${makeInput("IPv4", r2Ip, "r2Ip")}
+          ${makeInput("Masque", r2Mask, "r2Mask")}
+          <label class="cfgLabel"><span>CIDR</span><input type="text" class="r2Cidr" readonly></label>
+        </div>
+      </div>
+    `;
+
+    const r1IfInput = box.querySelector(".r1If");
+    const r1IpInput = box.querySelector(".r1Ip");
+    const r1MaskInput = box.querySelector(".r1Mask");
+    const r1CidrInput = box.querySelector(".r1Cidr");
+    const r2IfInput = box.querySelector(".r2If");
+    const r2IpInput = box.querySelector(".r2Ip");
+    const r2MaskInput = box.querySelector(".r2Mask");
+    const r2CidrInput = box.querySelector(".r2Cidr");
+
+    function updateOutput() {
+      const if1 = r1IfInput.value.trim();
+      const ip1 = r1IpInput.value.trim();
+      const mask1 = normalizeMaskInput(r1MaskInput.value.trim());
+      const if2 = r2IfInput.value.trim();
+      const ip2 = r2IpInput.value.trim();
+      const mask2 = normalizeMaskInput(r2MaskInput.value.trim());
+
+      r1CidrInput.value = maskInputToCidr(r1MaskInput.value.trim()) || "invalid";
+      r2CidrInput.value = maskInputToCidr(r2MaskInput.value.trim()) || "invalid";
+
+      box.parentElement.querySelector("pre").textContent =
+`Routeur1
+enable
+configure terminal
+interface ${if1}
+ ip address ${ip1} ${mask1}
+ no shutdown
+end
+write memory
+
+Routeur2
+enable
+configure terminal
+interface ${if2}
+ ip address ${ip2} ${mask2}
+ no shutdown
+end
+write memory`;
+    }
+
+    box.querySelectorAll("input:not([readonly])").forEach(el => {
+      el.addEventListener("input", updateOutput);
+    });
+    updateOutput();
+  }
+
+  function ipv4ToInt(ip) {
+    const octets = ip.split(".").map(v => Number(v));
+    if (octets.length !== 4 || octets.some(v => !Number.isInteger(v) || v < 0 || v > 255)) return null;
+    return (((octets[0] << 24) >>> 0) + (octets[1] << 16) + (octets[2] << 8) + octets[3]) >>> 0;
+  }
+
+  function intToIpv4(value) {
+    return [
+      (value >>> 24) & 255,
+      (value >>> 16) & 255,
+      (value >>> 8) & 255,
+      value & 255
+    ].join(".");
+  }
+
+  function networkFromIpMask(ip, maskInput) {
+    const mask = normalizeMaskInput(maskInput);
+    const ipInt = ipv4ToInt(ip);
+    const maskInt = ipv4ToInt(mask);
+    if (ipInt === null || maskInt === null) return null;
+    return {
+      network: intToIpv4((ipInt & maskInt) >>> 0),
+      mask
+    };
+  }
+
+  function collectSubifNetworks(subifBox) {
+    if (!subifBox) return [];
+
+    const ips = [...subifBox.querySelectorAll(".subIp")];
+    const masks = [...subifBox.querySelectorAll(".subMask")];
+    const networks = [];
+
+    ips.forEach((ipEl, i) => {
+      const info = networkFromIpMask(ipEl.value.trim(), masks[i] ? masks[i].value.trim() : "");
+      if (info) networks.push(info);
+    });
+
+    const seen = new Set();
+    return networks.filter(item => {
+      const key = `${item.network}|${item.mask}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function renderRoutesBuilder(box) {
+    box.innerHTML = `
+      <div class="cfgPanel">
+        <div class="cfgInfo">Routes générées automatiquement depuis les étapes 4, 5 et 6.</div>
+      </div>
+    `;
+
+    const pre = box.parentElement.querySelector("pre");
+    if (!pre) return;
+
+    function updateOutput() {
+      const subifBoxes = [...document.querySelectorAll(".builder-subif")];
+      const r1Subif = subifBoxes[0] || null;
+      const r2Subif = subifBoxes[1] || null;
+      const linkBox = document.querySelector(".builder-link");
+
+      const routesForR1 = collectSubifNetworks(r2Subif);
+      const routesForR2 = collectSubifNetworks(r1Subif);
+
+      const nextHopR1 = linkBox ? (linkBox.querySelector(".r2Ip")?.value.trim() || "") : "";
+      const nextHopR2 = linkBox ? (linkBox.querySelector(".r1Ip")?.value.trim() || "") : "";
+
+      let txt = "Routeur1\nconfigure terminal\n";
+      if (routesForR1.length && nextHopR1) {
+        routesForR1.forEach(item => {
+          txt += `ip route ${item.network} ${item.mask} ${nextHopR1}\n`;
+        });
+      } else {
+        txt += "! Donnees insuffisantes: verifier les etapes 4, 5 et 6\n";
+      }
+      txt += "end\nwrite memory\n\n";
+
+      txt += "Routeur2\nconfigure terminal\n";
+      if (routesForR2.length && nextHopR2) {
+        routesForR2.forEach(item => {
+          txt += `ip route ${item.network} ${item.mask} ${nextHopR2}\n`;
+        });
+      } else {
+        txt += "! Donnees insuffisantes: verifier les etapes 4, 5 et 6\n";
+      }
+      txt += "end\nwrite memory";
+
+      pre.textContent = txt;
+    }
+
+    document.addEventListener("input", event => {
+      if (!event.target.closest(".builder-subif, .builder-link")) return;
+      updateOutput();
+    });
+
+    updateOutput();
+  }
+
+  function renderPcBuilder(box) {
+    box.innerHTML = `
+      <div class="cfgPanel">
+        <div class="cfgRow">
+          ${makeSelect("Routeur", [
+            { value: "r1", label: "Routeur 1" },
+            { value: "r2", label: "Routeur 2" }
+          ], "pcRouter")}
+          ${makeSelect("VLAN", [], "pcVlan")}
+        </div>
+      </div>
+    `;
+
+    const routerSelect = box.querySelector(".pcRouter");
+    const vlanSelect = box.querySelector(".pcVlan");
+    const pre = box.parentElement.querySelector("pre");
+    if (!pre) return;
+
+    function getRouterEntries(routerValue) {
+      const subifBoxes = [...document.querySelectorAll(".builder-subif")];
+      const targetBox = routerValue === "r2" ? subifBoxes[1] : subifBoxes[0];
+      if (!targetBox) return [];
+
+      const vlans = [...targetBox.querySelectorAll(".subVlan")];
+      const ips = [...targetBox.querySelectorAll(".subIp")];
+      const masks = [...targetBox.querySelectorAll(".subMask")];
+      const entries = [];
+
+      for (let i = 0; i < vlans.length; i++) {
+        const vlan = vlans[i].value.trim();
+        const gateway = ips[i] ? ips[i].value.trim() : "";
+        const mask = masks[i] ? normalizeMaskInput(masks[i].value.trim()) : "";
+        const net = networkFromIpMask(gateway, mask);
+
+        if (!vlan || !gateway || !mask || !net) continue;
+
+        const networkInt = ipv4ToInt(net.network);
+        const maskInt = ipv4ToInt(net.mask);
+        if (networkInt === null || maskInt === null) continue;
+
+        const broadcastInt = (networkInt | ((~maskInt) >>> 0)) >>> 0;
+        const cidr = maskToCidr(net.mask);
+        const prefix = cidr ? Number(cidr.slice(1)) : null;
+
+        let firstHost = "";
+        let lastHost = "";
+        if (prefix === null) {
+          firstHost = "invalid";
+          lastHost = "invalid";
+        } else if (prefix >= 31) {
+          firstHost = intToIpv4(networkInt);
+          lastHost = intToIpv4(broadcastInt);
+        } else {
+          firstHost = intToIpv4((networkInt + 1) >>> 0);
+          lastHost = intToIpv4((broadcastInt - 1) >>> 0);
+        }
+
+        entries.push({
+          vlan,
+          gateway,
+          mask: net.mask,
+          cidr,
+          range: `${firstHost} - ${lastHost}`
+        });
+      }
+
+      const byVlan = new Map();
+      entries.forEach(item => {
+        if (!byVlan.has(item.vlan)) byVlan.set(item.vlan, item);
+      });
+      return [...byVlan.values()].sort((a, b) => Number(a.vlan) - Number(b.vlan));
+    }
+
+    function refreshVlanOptions() {
+      const current = vlanSelect.value;
+      const entries = getRouterEntries(routerSelect.value);
+
+      if (!entries.length) {
+        vlanSelect.innerHTML = `<option value="">Aucun VLAN disponible</option>`;
+        return entries;
+      }
+
+      vlanSelect.innerHTML = entries
+        .map(item => `<option value="${item.vlan}">VLAN ${item.vlan}</option>`)
+        .join("");
+
+      const keep = entries.some(item => item.vlan === current) ? current : entries[0].vlan;
+      vlanSelect.value = keep;
+      return entries;
+    }
+
+    function updateOutput() {
+      const entries = refreshVlanOptions();
+      const selected = entries.find(item => item.vlan === vlanSelect.value);
+      const routerLabel = routerSelect.value === "r2" ? "Routeur 2" : "Routeur 1";
+
+      if (!selected) {
+        pre.textContent =
+`PC
+Routeur: ${routerLabel}
+VLAN: non disponible
+Passerelle: indeterminee
+Plage IP possible: indeterminee
+`;
+        return;
+      }
+
+      pre.textContent =
+`PC
+Routeur: ${routerLabel}
+VLAN: ${selected.vlan}
+Passerelle: ${selected.gateway}
+Masque: ${selected.mask} (${selected.cidr || "invalid"})
+Plage IP possible: ${selected.range}`;
+    }
+
+    routerSelect.addEventListener("change", updateOutput);
+    vlanSelect.addEventListener("change", updateOutput);
+    document.addEventListener("input", event => {
+      if (!event.target.closest(".builder-subif")) return;
+      updateOutput();
+    });
+
+    updateOutput();
+  }
+
   function renderOspfBuilder(box) {
     box.innerHTML = `
       <div class="cfgPanel">
@@ -155,9 +621,128 @@ write memory`;
     updateOutput();
   }
 
+  function formatTokenLabel(token) {
+    return token
+      .split("-")
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  }
+
+  function renderCliTemplate(box) {
+    const pre = box.parentElement.querySelector("pre[data-template]");
+    if (!pre) return;
+
+    const template = pre.dataset.template || "";
+    const attrs = [...box.attributes].filter(attr => attr.name.startsWith("data-"));
+
+    box.innerHTML = `
+      <div class="cfgPanel">
+        ${attrs.map(attr => {
+          const rawKey = attr.name.slice(5);
+          return makeInput(formatTokenLabel(rawKey), attr.value, "tplVar");
+        }).join("")}
+      </div>
+    `;
+
+    const inputs = [...box.querySelectorAll(".tplVar")];
+
+    function updateOutput() {
+      let txt = template;
+
+      attrs.forEach((attr, i) => {
+        const token = attr.name.slice(5).toUpperCase().replace(/-/g, "_");
+        const rawValue = inputs[i].value;
+        const outValue = token.includes("MASK") ? normalizeMaskInput(rawValue) : rawValue;
+        txt = txt.split(`{{${token}}}`).join(outValue);
+      });
+
+      pre.textContent = txt;
+    }
+
+    inputs.forEach(i => i.addEventListener("input", updateOutput));
+    updateOutput();
+  }
+
+  function isMaskAddress(ip) {
+    const valid = new Set(["0", "128", "192", "224", "240", "248", "252", "254", "255"]);
+    const octets = ip.split(".");
+    return octets.length === 4 && octets.every(o => valid.has(o));
+  }
+
+  function collectAutoTokens(text) {
+    const matches = new Map();
+
+    const add = (value, kind) => {
+      if (!matches.has(value)) matches.set(value, kind);
+    };
+
+    const ifRegex = /\b(?:fa|f|gi|g|se|s|te|t)\d+\/\d+(?:\/\d+)?(?:\.\d+)?\b/gi;
+    const ipRegex = /\b(?:\d{1,3}\.){3}\d{1,3}\b/g;
+    const cidrRegex = /\/(?:3[0-2]|[12]?\d)\b/g;
+
+    (text.match(ifRegex) || []).forEach(v => add(v, "Interface"));
+    (text.match(ipRegex) || []).forEach(v => add(v, isMaskAddress(v) ? "Mask" : "IPv4"));
+    (text.match(cidrRegex) || []).forEach(v => add(v, "CIDR"));
+
+    return [...matches.entries()]
+      .map(([token, kind]) => ({ token, kind }))
+      .sort((a, b) => b.token.length - a.token.length);
+  }
+
+  function escapeRegExp(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  function renderAutoBuilder(pre) {
+    const template = pre.textContent.trim();
+    if (!template) return;
+
+    const tokens = collectAutoTokens(template);
+    if (!tokens.length) return;
+
+    const box = document.createElement("div");
+    box.className = "auto-builder";
+    box.innerHTML = `
+      <div class="cfgPanel">
+        <div class="cfgRow">
+          ${tokens.map((item, idx) => makeInput(`${item.kind} ${idx + 1}`, item.token, "autoVar")).join("")}
+        </div>
+      </div>
+    `;
+
+    pre.parentElement.insertBefore(box, pre);
+    const inputs = [...box.querySelectorAll(".autoVar")];
+
+    function updateOutput() {
+      let txt = template;
+      tokens.forEach((item, i) => {
+        const rawValue = inputs[i].value;
+        const outValue = item.kind === "Mask" ? normalizeMaskInput(rawValue) : rawValue;
+        txt = txt.replace(new RegExp(escapeRegExp(item.token), "g"), outValue);
+      });
+      pre.textContent = txt;
+    }
+
+    inputs.forEach(i => i.addEventListener("input", updateOutput));
+    updateOutput();
+  }
+
   document.querySelectorAll(".builder-vlan").forEach(renderVlanBuilder);
   document.querySelectorAll(".builder-if").forEach(renderInterfaceBuilder);
+  document.querySelectorAll(".builder-trunk").forEach(renderTrunkBuilder);
+  document.querySelectorAll(".builder-subif").forEach(renderSubifBuilder);
+  document.querySelectorAll(".builder-link").forEach(renderWanLinkBuilder);
+  document.querySelectorAll(".builder-routes").forEach(renderRoutesBuilder);
+  document.querySelectorAll(".builder-pc").forEach(renderPcBuilder);
   document.querySelectorAll(".builder-ospf").forEach(renderOspfBuilder);
+  document.querySelectorAll(".cli-template").forEach(renderCliTemplate);
+
+  document.querySelectorAll("details").forEach(detail => {
+    if (detail.querySelector(".builder-vlan, .builder-if, .builder-trunk, .builder-subif, .builder-link, .builder-routes, .builder-pc, .builder-ospf, .cli-template")) return;
+    const pre = detail.querySelector("pre");
+    if (!pre || pre.dataset.template) return;
+    renderAutoBuilder(pre);
+  });
 
 });
 </script>
@@ -175,6 +760,8 @@ summary{overflow:hidden;color:var(--muted);list-style:none;cursor:pointer;paddin
 summary::-webkit-details-marker{display:none}
 summary:hover{background:#2d3e54}
 .desc{padding:15px;color:var(--cmd);font-weight:normal;font-family:monospace;font-size:1.1em}
+.comment{padding:0 15px 12px;color:var(--muted2);font-family:monospace;font-size:1em}
+.comment span{color:#dff3ff}
 pre{margin:5px;padding:18px 20px;background:var(--code);border-radius:10px;overflow:auto;color:#dff3ff;font-size:1.1em}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:28px}
 .card{margin-top:28px}
@@ -196,6 +783,22 @@ grid-template-columns:1fr 1fr;
 gap:10px;
 margin-top:8px;
 }
+.cfgRow3{
+grid-template-columns:1fr 1fr 1fr;
+}
+.cfgRow4{
+grid-template-columns:1fr 1fr 1fr 1fr;
+}
+.cfgSectionTitle{
+margin-top:8px;
+color:#c7d7ea;
+font-size:13px;
+font-weight:700;
+}
+.cfgInfo{
+color:#c7d7ea;
+font-size:13px;
+}
 .cfgLabel{
 display:flex;
 flex-direction:column;
@@ -211,6 +814,18 @@ padding:8px;
 border-radius:8px;
 font-family:monospace;
 }
+.cfgLabel select{
+background:#020617;
+color:#e7edf5;
+border:1px solid #475569;
+padding:8px;
+border-radius:8px;
+font-family:monospace;
+}
+.cfgLabel input[readonly]{
+color:#9fb0c3;
+background:#0b1220;
+}
 </style>
 </head>
 <body><div class="wrap">
@@ -224,83 +839,34 @@ font-family:monospace;
 </details>
 
 <details><summary>Étape 2 : Affecter les ports des PC aux VLANs</summary>
-<div class='desc'>Associer chaque port utilisateur au VLAN correspondant.</div><pre>configure terminal
-interface fa0/1
- switchport mode access
- switchport access vlan 10
-interface fa0/2
- switchport mode access
- switchport access vlan 20
-interface fa0/3
- switchport mode access
- switchport access vlan 30
-end
-write memory</pre></details>
-<details><summary>Étape 3 : Configurer le port trunk vers le routeur</summary><div class='desc'>Transporter les VLANs entre switch et routeur.</div><pre>configure terminal
-interface fa0/24
- switchport mode trunk
- switchport trunk allowed vlan 10,20,30
-end
-write memory</pre></details>
-<details><summary>Étape 4 : Sous-interfaces du Routeur 1</summary><pre>enable
-configure terminal
-interface g0/0
- no shutdown
-interface g0/0.10
- encapsulation dot1Q 10
- ip address 192.168.10.1 255.255.255.0
-interface g0/0.20
- encapsulation dot1Q 20
- ip address 192.168.20.1 255.255.255.0
-interface g0/0.30
- encapsulation dot1Q 30
- ip address 192.168.30.1 255.255.255.0
-end
-write memory</pre></details>
-<details><summary>Étape 5 : Sous-interfaces du Routeur 2</summary><pre>enable
-configure terminal
-interface g0/0
- no shutdown
-interface g0/0.10
- encapsulation dot1Q 10
- ip address 192.168.110.1 255.255.255.0
-interface g0/0.20
- encapsulation dot1Q 20
- ip address 192.168.120.1 255.255.255.0
-interface g0/0.30
- encapsulation dot1Q 30
- ip address 192.168.130.1 255.255.255.0
-end
-write memory</pre></details>
-<details><summary>Étape 6 : Lien entre les deux routeurs</summary><pre>Routeur1
-configure terminal
-interface g0/1
- ip address 10.0.0.1 255.255.255.252
- no shutdown
-end
-
-Routeur2
-configure terminal
-interface g0/1
- ip address 10.0.0.2 255.255.255.252
- no shutdown
-end
-write memory</pre></details>
-<details><summary>Étape 7 : Routes statiques Routeur 1</summary><pre>configure terminal
-ip route 192.168.110.0 255.255.255.0 10.0.0.2
-ip route 192.168.120.0 255.255.255.0 10.0.0.2
-ip route 192.168.130.0 255.255.255.0 10.0.0.2
-end
-write memory</pre></details>
-<details><summary>Étape 8 : Routes statiques Routeur 2</summary><pre>configure terminal
-ip route 192.168.10.0 255.255.255.0 10.0.0.1
-ip route 192.168.20.0 255.255.255.0 10.0.0.1
-ip route 192.168.30.0 255.255.255.0 10.0.0.1
-end
-write memory</pre></details>
-<details><summary>Étape 9 : Adresses IP des PC</summary><pre>PC1 : 192.168.10.10 /24 passerelle 192.168.10.1
-PC2 : 192.168.20.10 /24 passerelle 192.168.20.1
-PC3 : 192.168.130.10 /24 passerelle 192.168.130.1</pre></details>
+<div class="builder-if"></div>
+<div class='desc'>Choisir le nombre d'interfaces, puis renseigner le nom de chaque interface et son VLAN.</div>
+<div class="comment">Pour assigner un interval d'interfaces au même VLAN, utiliser: <span>interface range fa0/1-6</span></div>
+<pre></pre></details>
+<details><summary>Étape 3 : Configurer le port trunk vers le routeur</summary>
+<div class="builder-trunk"></div>
+<div class='desc'>Renseigner l'interface trunk et la liste des VLANs autorises (ex: 10,20,30).</div>
+<pre></pre></details>
+<details><summary>Étape 4 : Sous-interfaces du Routeur 1</summary>
+<div class="builder-subif" data-parent-if="g0/0" data-count="3" data-vlans="10,20,30" data-ips="192.168.10.1,192.168.20.1,192.168.30.1" data-masks="255.255.255.0,255.255.255.0,255.255.255.0"></div>
+<div class='desc'>Choisir l'interface physique, puis renseigner VLAN, IPv4 et masque pour chaque sous-interface.</div>
+<pre></pre></details>
+<details><summary>Étape 5 : Sous-interfaces du Routeur 2</summary>
+<div class="builder-subif" data-parent-if="g0/0" data-count="3" data-vlans="10,20,30" data-ips="192.168.110.1,192.168.120.1,192.168.130.1" data-masks="255.255.255.0,255.255.255.0,255.255.255.0"></div>
+<div class='desc'>Même principe: sous-interfaces nommées interface.VLAN, avec encapsulation dot1Q et IP/masque associés.</div>
+<pre></pre></details>
+<details><summary>Étape 6 : Lien entre les deux routeurs</summary>
+<div class="builder-link" data-r1-if="g0/1" data-r1-ip="10.0.0.1" data-r1-mask="255.255.255.252" data-r2-if="g0/1" data-r2-ip="10.0.0.2" data-r2-mask="255.255.255.252"></div>
+<div class='desc'>Saisir interface, IPv4 et masque pour chaque routeur. Le masque accepte aussi /xx (ou xx), converti en notation classique dans les commandes.</div>
+<pre></pre></details>
+<details><summary>Étape 7 : Routes statiques sur les deux routeurs</summary>
+<div class="builder-routes"></div>
+<div class='desc'>Aucune saisie ici: les routes sont déduites automatiquement des sous-interfaces de l'autre routeur et du lien inter-routeurs.</div>
+<pre></pre></details>
+<details><summary>Étape 8 : Adresses IP des PC</summary>
+<div class="builder-pc"></div>
+<div class='desc'>Choisir le routeur et le VLAN du PC. La passerelle et la plage d'adresses sont calculées automatiquement depuis les étapes 4 et 5.</div>
+<pre></pre></details>
 </section>
 <section class="card"><h2>Partie 2 — Serveur DHCP centralisé</h2>
 <details><summary>Étape 1 : Connecter le serveur DHCP sur un VLAN dédié</summary><pre>enable
